@@ -1,5 +1,72 @@
+// SPDX-License-Identifier : MIT
+pragma solidity ^0.8.19;
+
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 contract AltForge {
+    ERC20 token;
+    uint256 targetRaise;
+    uint256 totalRaise;
+    uint256 startsAt;
+    uint256 endsAt;
+    uint256 rewardReleasePeriod;
+    uint256 totalReleaseIteration;
+    uint256[] rewardReleasePercentages;
+    uint256 public constant DAY_IN_SECONDS = 1 days;
+
     struct Project {
-        string name;
+        string id;
+        uint256 targetRaise;
+        uint256 raised;
+        uint256 startsAt;
+        uint256 vestingPeriod;
+        uint256 endsAt;
+    }
+
+    constructor(
+        address _token,
+        uint256 _targetRaise,
+        uint256 _startsAt,
+        uint256 _endsAt,
+        uint256 _rewardReleasePeriod,
+        uint256[] memory _rewardReleasePercentages
+    ) {
+        uint256 totalIterations = calculateTotalReleaseIterations(
+            _startsAt,
+            _endsAt,
+            _rewardReleasePeriod
+        );
+        require(
+            totalIterations == _rewardReleasePercentages.length,
+            "Invalid Reward Release Percentages"
+        );
+        targetRaise = _targetRaise;
+        rewardReleasePercentages = _rewardReleasePercentages;
+        token = ERC20(_token);
+    }
+
+    /**
+     * @dev function for calculating total release iterations
+     */
+    function calculateTotalReleaseIterations(
+        uint256 startsAt,
+        uint256 endsAt,
+        uint256 rewardReleasePeriod
+    ) internal pure returns (uint256) {
+        require(startsAt <= endsAt, "Invalid time range");
+
+        uint256 totalTimePeriod = endsAt - startsAt;
+        uint256 rewardReleasePeriodInSeconds = rewardReleasePeriod *
+            DAY_IN_SECONDS;
+
+        require(
+            rewardReleasePeriodInSeconds > 0,
+            "Invalid reward release period"
+        );
+
+        uint256 totalReleaseIterations = totalTimePeriod /
+            rewardReleasePeriodInSeconds;
+
+        return totalReleaseIterations;
     }
 }
