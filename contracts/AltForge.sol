@@ -14,15 +14,6 @@ contract AltForge {
     uint256[] rewardReleasePercentages;
     uint256 public constant DAY_IN_SECONDS = 1 days;
 
-    struct Project {
-        string id;
-        uint256 targetRaise;
-        uint256 raised;
-        uint256 startsAt;
-        uint256 vestingPeriod;
-        uint256 endsAt;
-    }
-
     constructor(
         address _token,
         uint256 _targetRaise,
