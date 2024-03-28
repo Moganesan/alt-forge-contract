@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract AltForge {
     ERC20 token;
@@ -12,7 +13,11 @@ contract AltForge {
     uint256 rewardReleasePeriod;
     uint256 totalReleaseIteration;
     uint256[] rewardReleasePercentages;
+    uint256 pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
+    AggregatorV3Interface internal priceFeed;
+
+    mapping(address => uint256) private investors;
 
     constructor(
         address _token,
@@ -20,7 +25,9 @@ contract AltForge {
         uint256 _startsAt,
         uint256 _endsAt,
         uint256 _rewardReleasePeriod,
-        uint256[] memory _rewardReleasePercentages
+        uint256[] memory _rewardReleasePercentages,
+        address _priceFeedContract,
+        uint256 _pricePerToken
     ) {
         uint256 totalIterations = calculateTotalReleaseIterations(
             _startsAt,
@@ -34,6 +41,7 @@ contract AltForge {
         targetRaise = _targetRaise;
         rewardReleasePercentages = _rewardReleasePercentages;
         token = ERC20(_token);
+        priceFeed = AggregatorV3Interface(_priceFeedContract);
     }
 
     /**
@@ -59,5 +67,16 @@ contract AltForge {
             rewardReleasePeriodInSeconds;
 
         return totalReleaseIterations;
+    }
+
+    function getEthUsdPrice() public view returns (int) {
+        (
+            uint80 roundID,
+            int price,
+            uint startedAt,
+            uint timeStamp,
+            uint80 answeredInRound
+        ) = priceFeed.latestRoundData();
+        return price;
     }
 }
