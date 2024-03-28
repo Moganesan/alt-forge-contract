@@ -18,6 +18,7 @@ contract AltForge {
     AggregatorV3Interface internal priceFeed;
 
     mapping(address => uint256) private investors;
+    mapping(address => uint256) private tokensToRelease;
 
     constructor(
         address _token,
@@ -78,5 +79,16 @@ contract AltForge {
             uint80 answeredInRound
         ) = priceFeed.latestRoundData();
         return price;
+    }
+
+    /**
+     * @dev function for investing into project
+     */
+    function invest() public payable {
+        require(msg.value > 0, "Investment Required");
+        require(msg.sender != investors[msg.sender], "Already Invested");
+        uint256 ethToUSD = msg.value * getEthUsdPrice();
+        investors[msg.sender] = msg.value;
+        tokensToRelease[msg.sender] = pricePerToken * ethToUSD;
     }
 }
