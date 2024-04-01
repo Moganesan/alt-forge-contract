@@ -19,6 +19,7 @@ contract AltForge {
 
     mapping(address => uint256) private investors;
     mapping(address => uint256) private tokensToRelease;
+    mapping(address => uint256) private investedTime;
 
     constructor(
         address _token,
@@ -89,6 +90,18 @@ contract AltForge {
         require(msg.sender != investors[msg.sender], "Already Invested");
         uint256 ethToUSD = msg.value * getEthUsdPrice();
         investors[msg.sender] = msg.value;
+        investedTime[msg.sender] = block.timestamp;
         tokensToRelease[msg.sender] = pricePerToken * ethToUSD;
+    }
+
+    /**
+     * @dev function for claiming reward
+     */
+    function claimToken() public {
+        require(investors[msg.sender] != address(0), "Not Invested");
+        require(
+            tokensToRelease[msg.sender] != 0,
+            "Their is no tokens to claim"
+        );
     }
 }
