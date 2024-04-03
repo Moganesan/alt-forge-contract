@@ -22,6 +22,7 @@ contract AltForge {
 
     mapping(address => uint256) private investors;
     mapping(address => uint256) private tokensToRelease;
+    mapping(address => uint256) private tokenToReleaseIterations;
     mapping(address => uint256) private investedTime;
 
     constructor(
@@ -38,9 +39,10 @@ contract AltForge {
         startsAt = _startsAt;
         endsAt = _endsAt;
         targetRaise = _targetRaise;
-        rewardReleasePeriod = _rewardReleasePeriod;
+        rewardReleasePeriod = _rewardReleasePeriod * DAY_IN_SECONDS;
         rewardReleasePercentage = _rewardReleasePercentage;
-        totalVestingPeriod = _totalVestingPeriod;
+        totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
+        totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
         token = ERC20(_token);
         priceFeed = AggregatorV3Interface(_priceFeedContract);
     }
@@ -61,11 +63,11 @@ contract AltForge {
      */
     function invest() public payable {
         require(msg.value > 0, "Investment Required");
-        require(msg.sender != investors[msg.sender], "Already Invested");
+        require(investors[msg.sender] <= 0, "Already Invested");
         require(endsAt <= block.timestamp, "Investment ends");
         investors[msg.sender] = msg.value;
         investedTime[msg.sender] = block.timestamp;
-        tokensToRelease[msg.sender] =
+        tokenToReleaseIterations[msg.sender] = tokensToRelease[msg.sender] =
             pricePerToken *
             (msg.value * getEthUsdPrice());
     }
@@ -74,10 +76,12 @@ contract AltForge {
      * @dev function for claiming reward
      */
     function claimToken() public {
-        require(investors[msg.sender] != address(0), "Not Invested");
+        require(investors[msg.sender] > 0, "Not Invested");
         require(
             tokensToRelease[msg.sender] != 0,
             "Their is no tokens to claim"
         );
+        require(investedTime[msg.sender] < block.timestamp);
+        uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
     }
 }
