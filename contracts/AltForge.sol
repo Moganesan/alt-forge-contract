@@ -11,10 +11,13 @@ contract AltForge {
     uint256 startsAt;
     uint256 endsAt;
     uint256 rewardReleasePeriod;
+    uint256 rewardReleasePercentage;
+    uint256 totalVestingPeriod;
     uint256 totalReleaseIterations;
 
     uint256 pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
+    uint256 public constant MONTH_IN_SECONDS = 30 days;
     AggregatorV3Interface internal priceFeed;
 
     mapping(address => uint256) private investors;
@@ -27,6 +30,8 @@ contract AltForge {
         uint256 _startsAt,
         uint256 _endsAt,
         uint256 _rewardReleasePeriod,
+        uint256 _rewardReleasePercentage,
+        uint256 _totalVestingPeriod,
         address _priceFeedContract,
         uint256 _pricePerToken
     ) {
@@ -34,6 +39,8 @@ contract AltForge {
         endsAt = _endsAt;
         targetRaise = _targetRaise;
         rewardReleasePeriod = _rewardReleasePeriod;
+        rewardReleasePercentage = _rewardReleasePercentage;
+        totalVestingPeriod = _totalVestingPeriod;
         token = ERC20(_token);
         priceFeed = AggregatorV3Interface(_priceFeedContract);
     }
