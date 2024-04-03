@@ -85,5 +85,14 @@ contract AltForge {
         require(investedTime[msg.sender] < block.timestamp);
         uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
         require(currentTimeDiff >= rewardReleasePeriod);
+        token.transfer(
+            msg.sender,
+            tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
+        );
+        tokensToRelease[msg.sender] =
+            tokenToRelease[msg.sender] -
+            tokensToRelease[msg.sender] *
+            (rewardReleasePercentage / 100);
+        tokenToReleaseIterations = tokenToReleaseIterations - 1;
     }
 }
