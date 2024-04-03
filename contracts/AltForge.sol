@@ -84,5 +84,6 @@ contract AltForge {
         );
         require(investedTime[msg.sender] < block.timestamp);
         uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
+        require(currentTimeDiff >= rewardReleasePeriod);
     }
 }
