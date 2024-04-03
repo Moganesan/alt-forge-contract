@@ -67,7 +67,8 @@ contract AltForge {
         require(endsAt <= block.timestamp, "Investment ends");
         investors[msg.sender] = msg.value;
         investedTime[msg.sender] = block.timestamp;
-        tokenToReleaseIterations[msg.sender] = tokensToRelease[msg.sender] =
+        tokenToReleaseIterations[msg.sender] = totalReleaseIterations;
+        tokensToRelease[msg.sender] =
             pricePerToken *
             (msg.value * getEthUsdPrice());
     }
