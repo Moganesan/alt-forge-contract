@@ -11,8 +11,8 @@ contract AltForge {
     uint256 startsAt;
     uint256 endsAt;
     uint256 rewardReleasePeriod;
-    uint256 totalReleaseIteration;
-    uint256[] rewardReleasePercentages;
+    uint256 totalReleaseIterations;
+
     uint256 pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
     AggregatorV3Interface internal priceFeed;
@@ -27,48 +27,15 @@ contract AltForge {
         uint256 _startsAt,
         uint256 _endsAt,
         uint256 _rewardReleasePeriod,
-        uint256[] memory _rewardReleasePercentages,
         address _priceFeedContract,
         uint256 _pricePerToken
     ) {
-        uint256 totalIterations = calculateTotalReleaseIterations(
-            _startsAt,
-            _endsAt,
-            _rewardReleasePeriod
-        );
-        require(
-            totalIterations == _rewardReleasePercentages.length,
-            "Invalid Reward Release Percentages"
-        );
+        startsAt = _startsAt;
+        endsAt = _endsAt;
         targetRaise = _targetRaise;
-        rewardReleasePercentages = _rewardReleasePercentages;
+        rewardReleasePeriod = _rewardReleasePeriod;
         token = ERC20(_token);
         priceFeed = AggregatorV3Interface(_priceFeedContract);
-    }
-
-    /**
-     * @dev function for calculating total release iterations
-     */
-    function calculateTotalReleaseIterations(
-        uint256 startsAt,
-        uint256 endsAt,
-        uint256 rewardReleasePeriod
-    ) internal pure returns (uint256) {
-        require(startsAt <= endsAt, "Invalid time range");
-
-        uint256 totalTimePeriod = endsAt - startsAt;
-        uint256 rewardReleasePeriodInSeconds = rewardReleasePeriod *
-            DAY_IN_SECONDS;
-
-        require(
-            rewardReleasePeriodInSeconds > 0,
-            "Invalid reward release period"
-        );
-
-        uint256 totalReleaseIterations = totalTimePeriod /
-            rewardReleasePeriodInSeconds;
-
-        return totalReleaseIterations;
     }
 
     function getEthUsdPrice() public view returns (int) {
@@ -88,10 +55,11 @@ contract AltForge {
     function invest() public payable {
         require(msg.value > 0, "Investment Required");
         require(msg.sender != investors[msg.sender], "Already Invested");
-        uint256 ethToUSD = msg.value * getEthUsdPrice();
         investors[msg.sender] = msg.value;
         investedTime[msg.sender] = block.timestamp;
-        tokensToRelease[msg.sender] = pricePerToken * ethToUSD;
+        tokensToRelease[msg.sender] =
+            pricePerToken *
+            (msg.value * getEthUsdPrice());
     }
 
     /**
