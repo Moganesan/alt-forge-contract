@@ -55,6 +55,7 @@ contract AltForge {
     function invest() public payable {
         require(msg.value > 0, "Investment Required");
         require(msg.sender != investors[msg.sender], "Already Invested");
+        require(endsAt <= block.timestamp, "Investment ends");
         investors[msg.sender] = msg.value;
         investedTime[msg.sender] = block.timestamp;
         tokensToRelease[msg.sender] =
