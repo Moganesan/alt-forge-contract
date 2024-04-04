@@ -45,6 +45,7 @@ contract AltForge {
         rewardReleasePercentage = _rewardReleasePercentage;
         totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
         totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
+        pricePerToken = _pricePerToken;
         token = ERC20(_token);
         investToken = ERC20(_investToken);
         priceFeed = AggregatorV3Interface(_priceFeedContract);
