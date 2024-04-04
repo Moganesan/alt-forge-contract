@@ -1,12 +1,18 @@
 // SPDX-License-Identifier : MIT
 pragma solidity ^0.8.19;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract AltForge {
-    ERC20 token;
-    ERC20 investToken;
+contract AltForge is
+    Initializable,
+    ERC20Upgradeable,
+    ReentrancyGuardUpgradeable
+{
+    ERC20Upgradeable token;
+    ERC20Upgradeable investToken;
     uint256 targetRaise;
     uint256 totalRaise;
     uint256 startsAt;
@@ -26,7 +32,7 @@ contract AltForge {
     mapping(address => uint256) private tokenToReleaseIterations;
     mapping(address => uint256) private investedTime;
 
-    constructor(
+    initializer(
         address _token,
         address _investToken,
         uint256 _targetRaise,
@@ -37,7 +43,7 @@ contract AltForge {
         uint256 _totalVestingPeriod,
         address _priceFeedContract,
         uint256 _pricePerToken
-    ) {
+        ){
         startsAt = _startsAt;
         endsAt = _endsAt;
         targetRaise = _targetRaise;
