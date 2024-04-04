@@ -58,7 +58,7 @@ contract AltForge {
             uint timeStamp,
             uint80 answeredInRound
         ) = priceFeed.latestRoundData();
-        return price;
+        return uint256(price);
     }
 
     /**
