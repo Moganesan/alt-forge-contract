@@ -77,7 +77,7 @@ contract AltForge is
             "Insufficient Balance"
         );
         require(investors[msg.sender] <= 0, "Already Invested");
-        require(endsAt <= block.timestamp, "Investment ends");
+        require(endsAt >= block.timestamp, "Investment ends");
         bool approve = investToken.approve(address(this), _amount);
         require(approve, "Approve Failed");
         bool transfer = investToken.transferFrom(
