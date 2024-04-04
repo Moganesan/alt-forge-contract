@@ -32,7 +32,7 @@ contract AltForge is
     mapping(address => uint256) private tokenToReleaseIterations;
     mapping(address => uint256) private investedTime;
 
-    initializer(
+    function initialize(
         address _token,
         address _investToken,
         uint256 _targetRaise,
@@ -43,7 +43,7 @@ contract AltForge is
         uint256 _totalVestingPeriod,
         address _priceFeedContract,
         uint256 _pricePerToken
-        ){
+    ) external initializer {
         startsAt = _startsAt;
         endsAt = _endsAt;
         targetRaise = _targetRaise;
@@ -52,8 +52,8 @@ contract AltForge is
         totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
         totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
         pricePerToken = _pricePerToken;
-        token = ERC20(_token);
-        investToken = ERC20(_investToken);
+        token = ERC20Upgradeable(_token);
+        investToken = ERC20Upgradeable(_investToken);
         priceFeed = AggregatorV3Interface(_priceFeedContract);
     }
 
