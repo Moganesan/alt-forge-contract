@@ -6,6 +6,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 
 contract AltForge {
     ERC20 token;
+    ERC20 investToken;
     uint256 targetRaise;
     uint256 totalRaise;
     uint256 startsAt;
@@ -27,6 +28,7 @@ contract AltForge {
 
     constructor(
         address _token,
+        address _investToken,
         uint256 _targetRaise,
         uint256 _startsAt,
         uint256 _endsAt,
@@ -44,6 +46,7 @@ contract AltForge {
         totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
         totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
         token = ERC20(_token);
+        investToken = ERC20(_investToken);
         priceFeed = AggregatorV3Interface(_priceFeedContract);
     }
 
@@ -61,16 +64,27 @@ contract AltForge {
     /**
      * @dev function for investing into project
      */
-    function invest() public payable {
-        require(msg.value > 0, "Investment Required");
+    function invest(uint256 _amount) public {
+        require(
+            investToken.balanceOf(msg.sender) > _amount,
+            "Insufficient Balance"
+        );
         require(investors[msg.sender] <= 0, "Already Invested");
         require(endsAt <= block.timestamp, "Investment ends");
-        investors[msg.sender] = msg.value;
+        bool approve = investToken.approve(address(this), _amount);
+        require(approve, "Approve Failed");
+        bool transfer = investToken.transferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
+        require(transfer, "Transfer Failed");
+        investors[msg.sender] = _amount;
         investedTime[msg.sender] = block.timestamp;
         tokenToReleaseIterations[msg.sender] = totalReleaseIterations;
         tokensToRelease[msg.sender] =
             pricePerToken *
-            (msg.value * getEthUsdPrice());
+            (_amount * getEthUsdPrice());
     }
 
     /**
