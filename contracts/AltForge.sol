@@ -13,24 +13,24 @@ contract AltForge is
 {
     ERC20Upgradeable token;
     ERC20Upgradeable investToken;
-    uint256 targetRaise;
-    uint256 totalRaise;
-    uint256 startsAt;
-    uint256 endsAt;
-    uint256 rewardReleasePeriod;
-    uint256 rewardReleasePercentage;
-    uint256 totalVestingPeriod;
-    uint256 totalReleaseIterations;
+    uint256 public targetRaise;
+    uint256 public totalRaise;
+    uint256 public startsAt;
+    uint256 public endsAt;
+    uint256 public rewardReleasePeriod;
+    uint256 public rewardReleasePercentage;
+    uint256 public totalVestingPeriod;
+    uint256 public totalReleaseIterations;
 
-    uint256 pricePerToken;
+    uint256 public pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
     uint256 public constant MONTH_IN_SECONDS = 30 days;
     AggregatorV3Interface internal priceFeed;
 
-    mapping(address => uint256) private investors;
-    mapping(address => uint256) private tokensToRelease;
-    mapping(address => uint256) private tokenToReleaseIterations;
-    mapping(address => uint256) private investedTime;
+    mapping(address => uint256) public investors;
+    mapping(address => uint256) public tokensToRelease;
+    mapping(address => uint256) public tokenToReleaseIterations;
+    mapping(address => uint256) public investedTime;
 
     function initialize(
         address _token,
@@ -94,6 +94,10 @@ contract AltForge is
             (_amount * getEthUsdPrice());
     }
 
+    function getCurrentTimestamp() public view returns (uint256) {
+        return block.timestamp;
+    }
+
     /**
      * @dev function for claiming reward
      */
@@ -105,7 +109,10 @@ contract AltForge is
         );
         require(investedTime[msg.sender] < block.timestamp);
         uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
-        require(currentTimeDiff >= rewardReleasePeriod);
+        require(
+            currentTimeDiff >= rewardReleasePeriod,
+            "Release period not yet reached"
+        );
         token.transfer(
             msg.sender,
             tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
