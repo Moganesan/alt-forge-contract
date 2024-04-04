@@ -50,7 +50,7 @@ contract AltForge {
         priceFeed = AggregatorV3Interface(_priceFeedContract);
     }
 
-    function getEthUsdPrice() public view returns (int) {
+    function getEthUsdPrice() public view returns (uint256) {
         (
             uint80 roundID,
             int price,
