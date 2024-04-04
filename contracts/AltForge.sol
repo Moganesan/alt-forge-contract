@@ -104,9 +104,11 @@ contract AltForge {
             tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
         );
         tokensToRelease[msg.sender] =
-            tokenToRelease[msg.sender] -
+            tokensToRelease[msg.sender] -
             tokensToRelease[msg.sender] *
             (rewardReleasePercentage / 100);
-        tokenToReleaseIterations = tokenToReleaseIterations - 1;
+        tokenToReleaseIterations[msg.sender] =
+            tokenToReleaseIterations[msg.sender] -
+            1;
     }
 }
