@@ -103,16 +103,15 @@ contract AltForge is
      */
     function claimToken() public {
         require(investors[msg.sender] > 0, "Not Invested");
-        require(
-            tokensToRelease[msg.sender] != 0,
-            "Their is no tokens to claim"
-        );
+        require(tokensToRelease[msg.sender] > 0, "Their is no tokens to claim");
         require(investedTime[msg.sender] < block.timestamp);
         uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
-        uint256 currentIterations = totalReleaseIterations -
+
+        uint256 currentIteration = totalReleaseIterations -
             tokenToReleaseIterations[msg.sender] +
             1;
-        uint256 requiredTime = currentIterations * rewardReleasePeriod;
+
+        uint256 requiredTime = currentIteration * rewardReleasePeriod;
 
         require(
             currentTimeDiff >= requiredTime,
