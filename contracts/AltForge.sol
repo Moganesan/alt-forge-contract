@@ -73,10 +73,10 @@ contract AltForge is
      */
     function invest(uint256 _amount) public {
         require(
-            investToken.balanceOf(msg.sender) > _amount,
+            investToken.balanceOf(msg.sender) >= _amount,
             "Insufficient Balance"
         );
-        require(investors[msg.sender] <= 0, "Already Invested");
+        require(investors[msg.sender] == 0, "Already Invested");
         require(endsAt >= block.timestamp, "Investment ends");
         bool approve = investToken.approve(address(this), _amount);
         require(approve, "Approve Failed");
