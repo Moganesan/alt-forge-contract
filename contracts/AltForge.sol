@@ -92,6 +92,7 @@ contract AltForge is
         tokensToRelease[msg.sender] =
             pricePerToken *
             (_amount * getEthUsdPrice());
+        totalRaise = _amount;
     }
 
     function getCurrentTimestamp() public view returns (uint256) {
