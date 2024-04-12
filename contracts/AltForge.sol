@@ -128,4 +128,12 @@ contract AltForge is
             (rewardReleasePercentage / 100);
         tokenToReleaseIterations[msg.sender] -= 1;
     }
+
+    /**
+     * @dev function for getting token iteration stage
+     */
+    function getTokenIterationStage() public view returns (uint256) {
+        return
+            totalReleaseIterations - tokenToReleaseIterations[msg.sender] + 1;
+    }
 }
