@@ -136,4 +136,11 @@ contract AltForge is
         return
             totalReleaseIterations - tokenToReleaseIterations[msg.sender] + 1;
     }
+
+    /**
+     * @dev function for getting total remaining amount to claim
+     */
+    function getAmountToClaim() public view returns (uint256) {
+        return tokensToRelease[msg.sender];
+    }
 }
