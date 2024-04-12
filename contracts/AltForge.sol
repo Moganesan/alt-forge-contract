@@ -173,4 +173,11 @@ contract AltForge is
     function getAmountToClaim() public view returns (uint256) {
         return tokensToRelease[msg.sender];
     }
+
+    /**
+    @dev function for getting raised percentage
+    */
+    function getTotalRaisePercentage() public view returns (uint256){
+        return (totalRaise / targetRaise) * 100;
+    }
 }
