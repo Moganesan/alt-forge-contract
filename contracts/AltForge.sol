@@ -1,10 +1,10 @@
 // SPDX-License-Identifier : MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract AltForge is
     Initializable,
@@ -33,14 +33,11 @@ contract AltForge is
     mapping(address => uint256) public tokenToReleaseIterations;
     mapping(address => uint256) public investedTime;
 
-    event withdraw(address _investor, uint256 _timestamp);
+    event _withdraw(address _investor, uint256 _timestamp);
 
-    event invest(address _investor, uint256 _amount, uint256 _timestamp);
+    event _invest(address _investor, uint256 _amount, uint256 _timestamp);
 
-    event claimToken(
-        address _investor,
-        uint256 _releasedAmount,
-    );
+    event _claimToken(address _investor, uint256 _releasedAmount);
 
     function initialize(
         address _token,
@@ -106,7 +103,7 @@ contract AltForge is
             (_amount * getEthUsdPrice());
         totalRaise += _amount;
 
-        emit invest(msg.sender, _amount, block.timestamp);
+        emit _invest(msg.sender, _amount, block.timestamp);
     }
 
     /**
@@ -122,7 +119,7 @@ contract AltForge is
         investors[msg.sender] = 0;
         tokensToRelease[msg.sender] = 0;
 
-        emit withdraw(msg.sender, block.timestamp);
+        emit _withdraw(msg.sender, block.timestamp);
     }
 
     /**
@@ -155,8 +152,10 @@ contract AltForge is
             (rewardReleasePercentage / 100);
         tokenToReleaseIterations[msg.sender] -= 1;
 
-        emit claimToken(msg.sender, tokensToRelease[msg.sender], tokensToRelease[msg.sender] *
-            (rewardReleasePercentage / 100));
+        emit _claimToken(
+            msg.sender,
+            tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
+        );
     }
 
     /**
@@ -177,7 +176,7 @@ contract AltForge is
     /**
     @dev function for getting raised percentage
     */
-    function getTotalRaisePercentage() public view returns (uint256){
+    function getTotalRaisePercentage() public view returns (uint256) {
         return (totalRaise / targetRaise) * 100;
     }
 }
