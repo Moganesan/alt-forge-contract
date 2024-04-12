@@ -37,6 +37,11 @@ contract AltForge is
 
     event invest(address _investor, uint256 _amount, uint256 _timestamp);
 
+    event claimToken(
+        address _investor,
+        uint256 _releasedAmount,
+    );
+
     function initialize(
         address _token,
         address _investToken,
@@ -149,6 +154,9 @@ contract AltForge is
             tokensToRelease[msg.sender] *
             (rewardReleasePercentage / 100);
         tokenToReleaseIterations[msg.sender] -= 1;
+
+        emit claimToken(msg.sender, tokensToRelease[msg.sender], tokensToRelease[msg.sender] *
+            (rewardReleasePercentage / 100));
     }
 
     /**
