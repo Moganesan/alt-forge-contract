@@ -33,7 +33,9 @@ contract AltForge is
     mapping(address => uint256) public tokenToReleaseIterations;
     mapping(address => uint256) public investedTime;
 
-    event withdraw(address _investor, uint256 timestamp);
+    event withdraw(address _investor, uint256 _timestamp);
+
+    event invest(address _investor, uint256 _amount, uint256 _timestamp);
 
     function initialize(
         address _token,
@@ -98,6 +100,8 @@ contract AltForge is
             pricePerToken *
             (_amount * getEthUsdPrice());
         totalRaise += _amount;
+
+        emit invest(msg.sender, _amount, block.timestamp);
     }
 
     /**
