@@ -20,6 +20,7 @@ contract AltForge is
     uint256 public rewardReleasePeriod;
     uint256 public rewardReleasePercentage;
     uint256 public totalVestingPeriod;
+    uint256 public withdrawPeriod;
     uint256 public totalReleaseIterations;
 
     uint256 public pricePerToken;
@@ -32,6 +33,8 @@ contract AltForge is
     mapping(address => uint256) public tokenToReleaseIterations;
     mapping(address => uint256) public investedTime;
 
+    event withdraw(address _investor, uint256 timestamp);
+
     function initialize(
         address _token,
         address _investToken,
@@ -39,6 +42,7 @@ contract AltForge is
         uint256 _startsAt,
         uint256 _endsAt,
         uint256 _rewardReleasePeriod,
+        uint256 _withdrawPeriod,
         uint256 _rewardReleasePercentage,
         uint256 _totalVestingPeriod,
         address _priceFeedContract,
@@ -48,6 +52,7 @@ contract AltForge is
         endsAt = _endsAt;
         targetRaise = _targetRaise;
         rewardReleasePeriod = _rewardReleasePeriod * DAY_IN_SECONDS;
+        withdrawPeriod = _withdrawPeriod * DAY_IN_SECONDS;
         rewardReleasePercentage = _rewardReleasePercentage;
         totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
         totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
@@ -95,8 +100,20 @@ contract AltForge is
         totalRaise += _amount;
     }
 
-    function getCurrentTimestamp() public view returns (uint256) {
-        return block.timestamp;
+    /**
+    @dev function for withdraw the investment
+     */
+    function withdraw() public {
+        require(investors[msg.sender] > 0, "Not Invested");
+        uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
+
+        require(currentTimeDiff <= withdrawPeriod, "Withdraw Period Ends.");
+        token.transferFrom(address(this), msg.sender, investors[msg.sender]);
+        totalRaise -= investors[msg.sender];
+        investors[msg.sender] = 0;
+        tokensToRelease[msg.sender] = 0;
+
+        emit withdraw(msg.sender, block.timestamp);
     }
 
     /**
