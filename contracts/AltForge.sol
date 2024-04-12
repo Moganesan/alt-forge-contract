@@ -109,10 +109,16 @@ contract AltForge is
         );
         require(investedTime[msg.sender] < block.timestamp);
         uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
+        uint256 currentIterations = totalReleaseIterations -
+            tokenToReleaseIterations[msg.sender] +
+            1;
+        uint256 requiredTime = currentIterations * rewardReleasePeriod;
+
         require(
-            currentTimeDiff >= rewardReleasePeriod,
+            currentTimeDiff >= requiredTime,
             "Release period not yet reached"
         );
+
         token.transfer(
             msg.sender,
             tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
