@@ -111,6 +111,7 @@ contract AltForge is
      */
     function withdraw() public {
         require(investors[msg.sender] > 0, "Not Invested");
+        require(block.timestamp > investedTime[msg.sender]);
         uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
 
         require(currentTimeDiff <= withdrawPeriod, "Withdraw Period Ends.");
