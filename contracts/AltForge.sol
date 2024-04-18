@@ -98,9 +98,7 @@ contract AltForge is
         investors[msg.sender] = _amount;
         investedTime[msg.sender] = block.timestamp;
         tokenToReleaseIterations[msg.sender] = totalReleaseIterations;
-        tokensToRelease[msg.sender] =
-            pricePerToken *
-            (_amount * getEthUsdPrice());
+        tokensToRelease[msg.sender] = _amount / pricePerToken;
         totalRaise += _amount;
 
         emit _invest(msg.sender, _amount, block.timestamp);
