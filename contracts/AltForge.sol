@@ -158,6 +158,13 @@ contract AltForge is
     }
 
     /**
+    @dev function for getting number of tokens to claim
+     */
+    function getTokensToClaim() public view returns (uint256) {
+        return tokensToRelease[msg.sender];
+    }
+
+    /**
      * @dev function for getting vesting start time
      */
     function getVestingStartTime() public view returns (uint256) {
