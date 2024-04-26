@@ -151,6 +151,20 @@ contract AltForge is
     }
 
     /**
+     * @dev function for getting vesting start time
+     */
+    function getVestingStartTime() public view returns (uint256) {
+        return investedTime[msg.sender];
+    }
+
+    /**
+    @dev function for getting vesting end time
+     */
+    function getVestingEndTime() public view returns (uint256) {
+        return investedTime[msg.sender] + totalVestingPeriod;
+    }
+
+    /**
      * @dev function for getting total claimed percentage
      */
     function getTotalClaimedPercentage() public view returns (uint256) {
