@@ -26,7 +26,6 @@ contract AltForge is
     uint256 public pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
     uint256 public constant MONTH_IN_SECONDS = 30 days;
-    AggregatorV3Interface internal priceFeed;
 
     mapping(address => uint256) public investors;
     mapping(address => uint256) public tokensToRelease;
@@ -49,7 +48,6 @@ contract AltForge is
         uint256 _withdrawPeriod,
         uint256 _rewardReleasePercentage,
         uint256 _totalVestingPeriod,
-        address _priceFeedContract,
         uint256 _pricePerToken
     ) external initializer {
         startsAt = _startsAt;
@@ -63,18 +61,6 @@ contract AltForge is
         pricePerToken = _pricePerToken;
         token = ERC20Upgradeable(_token);
         investToken = ERC20Upgradeable(_investToken);
-        priceFeed = AggregatorV3Interface(_priceFeedContract);
-    }
-
-    function getEthUsdPrice() public view returns (uint256) {
-        (
-            uint80 roundID,
-            int price,
-            uint startedAt,
-            uint timeStamp,
-            uint80 answeredInRound
-        ) = priceFeed.latestRoundData();
-        return uint256(price);
     }
 
     /**
