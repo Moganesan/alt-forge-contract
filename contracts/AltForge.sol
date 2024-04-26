@@ -29,6 +29,7 @@ contract AltForge is
 
     mapping(address => uint256) public investors;
     mapping(address => uint256) public tokensToRelease;
+    mapping(address => uint256) public totalTokensToRelease;
     mapping(address => uint256) public tokenToReleaseIterations;
     mapping(address => uint256) public investedTime;
 
@@ -85,6 +86,7 @@ contract AltForge is
         investedTime[msg.sender] = block.timestamp;
         tokenToReleaseIterations[msg.sender] = totalReleaseIterations;
         tokensToRelease[msg.sender] = _amount / pricePerToken;
+        totalTokensToRelease[msg.sender] = _amount / pricePerToken;
         totalRaise += _amount;
 
         emit _invest(msg.sender, _amount, block.timestamp);
@@ -103,6 +105,7 @@ contract AltForge is
         totalRaise -= investors[msg.sender];
         investors[msg.sender] = 0;
         tokensToRelease[msg.sender] = 0;
+        totalTokensToRelease[msg.sender] = 0;
 
         emit _withdraw(msg.sender, block.timestamp);
     }
@@ -137,10 +140,21 @@ contract AltForge is
             (rewardReleasePercentage / 100);
         tokenToReleaseIterations[msg.sender] -= 1;
 
+        if (tokensToRelease[msg.sender] == 0) {
+            totalTokensToRelease[msg.sender] = 0;
+        }
+
         emit _claimToken(
             msg.sender,
             tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
         );
+    }
+
+    /**
+     * @dev function for getting total claimed percentage
+     */
+    function getTotalClaimedPercentage() public view returns (uint256) {
+        return tokensToRelease[msg.sender];
     }
 
     /**
