@@ -162,6 +162,6 @@ contract AltForge is
     @dev function for getting raised percentage
     */
     function getTotalRaisePercentage() public view returns (uint256) {
-        return (totalRaise / targetRaise) * 100;
+        return (totalRaise * 100) / targetRaise;
     }
 }
