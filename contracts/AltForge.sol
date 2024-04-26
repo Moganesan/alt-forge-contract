@@ -182,7 +182,16 @@ contract AltForge is
      * @dev function for getting total claimed percentage
      */
     function getTotalClaimedPercentage() public view returns (uint256) {
-        return tokensToRelease[msg.sender];
+        uint256 remainingTokens = totalTokensToRelease[msg.sender] -
+            tokensToRelease[msg.sender];
+        uint256 totalTokens = totalTokensToRelease[msg.sender];
+
+        if (totalTokens > 0) {
+            uint256 claimedPercentage = (remainingTokens * 100) / totalTokens;
+            return 100 - claimedPercentage; // Calculate the claimed percentage
+        } else {
+            return 0; // Return 0 if there are no tokens to claim
+        }
     }
 
     /**
