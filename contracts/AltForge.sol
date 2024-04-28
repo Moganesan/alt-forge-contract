@@ -17,11 +17,15 @@ contract AltForge is
     uint256 public totalRaise;
     uint256 public startsAt;
     uint256 public endsAt;
+    uint256 public tgeTimeStamp;
+    uint256 public tgeReleasePercentage;
+    uint256 public cliffTime;
+    uint256 public linearVestingPeriod;
     uint256 public rewardReleasePeriod;
-    uint256 public rewardReleasePercentage;
     uint256 public totalVestingPeriod;
     uint256 public withdrawPeriod;
     uint256 public totalReleaseIterations;
+    bool public isLinearVesting;
 
     uint256 public pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
@@ -45,20 +49,35 @@ contract AltForge is
         uint256 _targetRaise,
         uint256 _startsAt,
         uint256 _endsAt,
+        uint256 _tgeTimeStamp,
+        uint256 _tgeReleasePercentage,
+        uint256 _cliffTime,
+        uint256 _linearVestPeriod,
         uint256 _rewardReleasePeriod,
-        uint256 _withdrawPeriod,
-        uint256 _rewardReleasePercentage,
         uint256 _totalVestingPeriod,
+        uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) external initializer {
         startsAt = _startsAt;
         endsAt = _endsAt;
         targetRaise = _targetRaise;
-        rewardReleasePeriod = _rewardReleasePeriod * DAY_IN_SECONDS;
+
         withdrawPeriod = _withdrawPeriod * DAY_IN_SECONDS;
-        rewardReleasePercentage = _rewardReleasePercentage;
-        totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
-        totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
+        if (_linearVestPeriod > 0) {
+            linearVestingPeriod = _linearVestPeriod * MONTH_IN_SECONDS;
+            if (cliffTime > 0) {
+                cliffTime = _cliffTime * MONTH_IN_SECONDS;
+            }
+            isLinearVesting = true;
+        } else {
+            if (_totalVestingPeriod == 0) {
+                revert("Invalid Vesting Type");
+                return;
+            }
+            totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
+            rewardReleasePeriod = _rewardReleasePeriod * DAY_IN_SECONDS;
+            totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
+        }
         pricePerToken = _pricePerToken;
         token = ERC20Upgradeable(_token);
         investToken = ERC20Upgradeable(_investToken);
@@ -84,7 +103,9 @@ contract AltForge is
         require(transfer, "Transfer Failed");
         investors[msg.sender] = _amount;
         investedTime[msg.sender] = block.timestamp;
-        tokenToReleaseIterations[msg.sender] = totalReleaseIterations;
+        if (isLinearVesting == false) {
+            tokenToReleaseIterations[msg.sender] = totalReleaseIterations;
+        }
         tokensToRelease[msg.sender] = _amount / pricePerToken;
         totalTokensToRelease[msg.sender] = _amount / pricePerToken;
         totalRaise += _amount;
@@ -98,7 +119,7 @@ contract AltForge is
     function withdraw() public {
         require(investors[msg.sender] > 0, "Not Invested");
         require(block.timestamp > investedTime[msg.sender]);
-        uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
+        uint256 currentTimeDiff = block.timestamp - tgeTimeStamp;
 
         require(currentTimeDiff <= withdrawPeriod, "Withdraw Period Ends.");
         token.transferFrom(address(this), msg.sender, investors[msg.sender]);
@@ -116,38 +137,73 @@ contract AltForge is
     function claimToken() public {
         require(investors[msg.sender] > 0, "Not Invested");
         require(tokensToRelease[msg.sender] > 0, "Their is no tokens to claim");
-        require(investedTime[msg.sender] < block.timestamp);
-        uint256 currentTimeDiff = block.timestamp - investedTime[msg.sender];
+        require(tgeTimeStamp < block.timestamp);
+        uint256 currentTimeDiff = block.timestamp - tgeTimeStamp;
 
-        uint256 currentIteration = totalReleaseIterations -
-            tokenToReleaseIterations[msg.sender] +
-            1;
+        if (isLinearVesting) {
+            if (cliffTime > 0) {
+                require(
+                    block.timestamp > cliffTime,
+                    "Cliff period you can't claim."
+                );
+                uint256 totalPercentageToRelease = 100 - tgeReleasePercentage;
+                uint256 timeDiffFromCliff = block.timestamp - cliffTime;
+                uint256 percentageToRelease = (timeDiffFromCliff /
+                    linearVestingPeriod) * totalPercentageToRelease;
+                uint256 TokensToRelease = (tokensToRelease[msg.sender] *
+                    percentageToRelease) / totalPercentageToRelease;
+                token.transfer(msg.sender, TokensToRelease);
+                tokensToRelease[msg.sender] =
+                    tokensToRelease[msg.sender] -
+                    tokensToRelease;
+            } else {
+                uint256 totalPercentageToRelease = 100 - tgeReleasePercentage;
+                uint256 timeDiff = block.timestamp - tgeTimeStamp;
+                uint256 percentageToRelease = (timeDiff / linearVestingPeriod) *
+                    totalPercentageToRelease;
+                uint256 TokensToRelease = (tokensToRelease[msg.sender] *
+                    percentageToRelease) / totalPercentageToRelease;
+                token.transfer(msg.sender, TokensToRelease);
+                tokensToRelease[msg.sender] =
+                    tokensToRelease[msg.sender] -
+                    TokensToRelease;
 
-        uint256 requiredTime = currentIteration * rewardReleasePeriod;
+                if (tokensToRelease[msg.sender] == 0) {
+                    totalTokensToRelease[msg.sender] = 0;
+                }
+            }
+        } else {
+            uint256 currentIteration = totalReleaseIterations -
+                tokenToReleaseIterations[msg.sender] +
+                1;
 
-        require(
-            currentTimeDiff >= requiredTime,
-            "Release period not yet reached"
-        );
+            uint256 requiredTime = currentIteration * rewardReleasePeriod;
+            require(
+                currentTimeDiff >= requiredTime,
+                "Release period not yet reached"
+            );
+            uint256 rewardReleasePercentage = (tokensToRelease[msg.sender] /
+                totalReleaseIterations) * 100;
 
-        token.transfer(
-            msg.sender,
-            tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
-        );
-        tokensToRelease[msg.sender] =
-            tokensToRelease[msg.sender] -
-            tokensToRelease[msg.sender] *
-            (rewardReleasePercentage / 100);
-        tokenToReleaseIterations[msg.sender] -= 1;
+            token.transfer(
+                msg.sender,
+                tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
+            );
+            tokensToRelease[msg.sender] =
+                tokensToRelease[msg.sender] -
+                tokensToRelease[msg.sender] *
+                (rewardReleasePercentage / 100);
+            tokenToReleaseIterations[msg.sender] -= 1;
 
-        if (tokensToRelease[msg.sender] == 0) {
-            totalTokensToRelease[msg.sender] = 0;
+            if (tokensToRelease[msg.sender] == 0) {
+                totalTokensToRelease[msg.sender] = 0;
+            }
+
+            emit _claimToken(
+                msg.sender,
+                tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
+            );
         }
-
-        emit _claimToken(
-            msg.sender,
-            tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
-        );
     }
 
     /**
@@ -182,16 +238,10 @@ contract AltForge is
      * @dev function for getting total claimed percentage
      */
     function getTotalClaimedPercentage() public view returns (uint256) {
-        uint256 remainingTokens = totalTokensToRelease[msg.sender] -
-            tokensToRelease[msg.sender];
-        uint256 totalTokens = totalTokensToRelease[msg.sender];
-
-        if (totalTokens > 0) {
-            uint256 claimedPercentage = (remainingTokens * 100) / totalTokens;
-            return 100 - claimedPercentage; // Calculate the claimed percentage
-        } else {
-            return 0; // Return 0 if there are no tokens to claim
-        }
+        return
+            100 -
+            ((tokensToRelease[msg.sender] * 100) /
+                totalTokensToRelease[msg.sender]);
     }
 
     /**
