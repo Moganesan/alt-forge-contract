@@ -72,7 +72,7 @@ contract AltForge is
             vestingDetails.linearVestingPeriod =
                 _linearVestPeriod *
                 MONTH_IN_SECONDS;
-            if (vestingDetails.cliffTime > 0) {
+            if (_cliffTime > 0) {
                 vestingDetails.cliffTime = _cliffTime * MONTH_IN_SECONDS;
             }
             vestingDetails.isLinearVesting = true;
