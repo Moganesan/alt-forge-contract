@@ -155,7 +155,11 @@ contract AltForge is
                 token.transfer(msg.sender, TokensToRelease);
                 tokensToRelease[msg.sender] =
                     tokensToRelease[msg.sender] -
-                    tokensToRelease;
+                    TokensToRelease;
+
+                if (tokensToRelease[msg.sender] == 0) {
+                    totalTokensToRelease[msg.sender] = 0;
+                }
             } else {
                 uint256 totalPercentageToRelease = 100 - tgeReleasePercentage;
                 uint256 timeDiff = block.timestamp - tgeTimeStamp;
@@ -176,23 +180,24 @@ contract AltForge is
             uint256 currentIteration = totalReleaseIterations -
                 tokenToReleaseIterations[msg.sender] +
                 1;
-
+            uint256 totalPercentageToRelease = 100 - tgeReleasePercentage;
             uint256 requiredTime = currentIteration * rewardReleasePeriod;
             require(
                 currentTimeDiff >= requiredTime,
                 "Release period not yet reached"
             );
             uint256 rewardReleasePercentage = (tokensToRelease[msg.sender] /
-                totalReleaseIterations) * 100;
+                totalReleaseIterations) * totalPercentageToRelease;
 
             token.transfer(
                 msg.sender,
-                tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
+                tokensToRelease[msg.sender] *
+                    (rewardReleasePercentage / totalPercentageToRelease)
             );
             tokensToRelease[msg.sender] =
                 tokensToRelease[msg.sender] -
                 tokensToRelease[msg.sender] *
-                (rewardReleasePercentage / 100);
+                (rewardReleasePercentage / totalPercentageToRelease);
             tokenToReleaseIterations[msg.sender] -= 1;
 
             if (tokensToRelease[msg.sender] == 0) {
@@ -201,7 +206,8 @@ contract AltForge is
 
             emit _claimToken(
                 msg.sender,
-                tokensToRelease[msg.sender] * (rewardReleasePercentage / 100)
+                tokensToRelease[msg.sender] *
+                    (rewardReleasePercentage / totalPercentageToRelease)
             );
         }
     }
