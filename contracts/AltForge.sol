@@ -65,7 +65,8 @@ contract AltForge is
         startsAt = _startsAt;
         endsAt = _endsAt;
         targetRaise = _targetRaise;
-
+        vestingDetails.tgeTimeStamp = _tgeTimeStamp;
+        vestingDetails.tgeReleasePercentage = _tgeReleasePercentage;
         vestingDetails.withdrawPeriod = _withdrawPeriod * DAY_IN_SECONDS;
         if (_linearVestPeriod > 0) {
             vestingDetails.linearVestingPeriod =
