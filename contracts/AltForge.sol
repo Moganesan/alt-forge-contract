@@ -17,19 +17,23 @@ contract AltForge is
     uint256 public totalRaise;
     uint256 public startsAt;
     uint256 public endsAt;
-    uint256 public tgeTimeStamp;
-    uint256 public tgeReleasePercentage;
-    uint256 public cliffTime;
-    uint256 public linearVestingPeriod;
-    uint256 public rewardReleasePeriod;
-    uint256 public totalVestingPeriod;
-    uint256 public withdrawPeriod;
-    uint256 public totalReleaseIterations;
-    bool public isLinearVesting;
+    VestingDetails vestingDetails;
 
     uint256 public pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
     uint256 public constant MONTH_IN_SECONDS = 30 days;
+
+    struct VestingDetails {
+        uint256 tgeTimeStamp;
+        uint256 tgeReleasePercentage;
+        uint256 cliffTime;
+        uint256 linearVestingPeriod;
+        uint256 rewardReleasePeriod;
+        uint256 totalVestingPeriod;
+        uint256 withdrawPeriod;
+        uint256 totalReleaseIterations;
+        bool isLinearVesting;
+    }
 
     mapping(address => uint256) public investors;
     mapping(address => uint256) public tokensToRelease;
@@ -62,21 +66,29 @@ contract AltForge is
         endsAt = _endsAt;
         targetRaise = _targetRaise;
 
-        withdrawPeriod = _withdrawPeriod * DAY_IN_SECONDS;
+        vestingDetails.withdrawPeriod = _withdrawPeriod * DAY_IN_SECONDS;
         if (_linearVestPeriod > 0) {
-            linearVestingPeriod = _linearVestPeriod * MONTH_IN_SECONDS;
-            if (cliffTime > 0) {
-                cliffTime = _cliffTime * MONTH_IN_SECONDS;
+            vestingDetails.linearVestingPeriod =
+                _linearVestPeriod *
+                MONTH_IN_SECONDS;
+            if (vestingDetails.cliffTime > 0) {
+                vestingDetails.cliffTime = _cliffTime * MONTH_IN_SECONDS;
             }
-            isLinearVesting = true;
+            vestingDetails.isLinearVesting = true;
         } else {
             if (_totalVestingPeriod == 0) {
                 revert("Invalid Vesting Type");
                 return;
             }
-            totalVestingPeriod = _totalVestingPeriod * MONTH_IN_SECONDS;
-            rewardReleasePeriod = _rewardReleasePeriod * DAY_IN_SECONDS;
-            totalReleaseIterations = totalVestingPeriod / rewardReleasePeriod;
+            vestingDetails.totalVestingPeriod =
+                _totalVestingPeriod *
+                MONTH_IN_SECONDS;
+            vestingDetails.rewardReleasePeriod =
+                _rewardReleasePeriod *
+                DAY_IN_SECONDS;
+            vestingDetails.totalReleaseIterations =
+                vestingDetails.totalVestingPeriod /
+                vestingDetails.rewardReleasePeriod;
         }
         pricePerToken = _pricePerToken;
         token = ERC20Upgradeable(_token);
@@ -103,8 +115,9 @@ contract AltForge is
         require(transfer, "Transfer Failed");
         investors[msg.sender] = _amount;
         investedTime[msg.sender] = block.timestamp;
-        if (isLinearVesting == false) {
-            tokenToReleaseIterations[msg.sender] = totalReleaseIterations;
+        if (vestingDetails.isLinearVesting == false) {
+            tokenToReleaseIterations[msg.sender] = vestingDetails
+                .totalReleaseIterations;
         }
         tokensToRelease[msg.sender] = _amount / pricePerToken;
         totalTokensToRelease[msg.sender] = _amount / pricePerToken;
@@ -119,9 +132,12 @@ contract AltForge is
     function withdraw() public {
         require(investors[msg.sender] > 0, "Not Invested");
         require(block.timestamp > investedTime[msg.sender]);
-        uint256 currentTimeDiff = block.timestamp - tgeTimeStamp;
+        uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
 
-        require(currentTimeDiff <= withdrawPeriod, "Withdraw Period Ends.");
+        require(
+            currentTimeDiff <= vestingDetails.withdrawPeriod,
+            "Withdraw Period Ends."
+        );
         token.transferFrom(address(this), msg.sender, investors[msg.sender]);
         totalRaise -= investors[msg.sender];
         investors[msg.sender] = 0;
@@ -137,19 +153,22 @@ contract AltForge is
     function claimToken() public {
         require(investors[msg.sender] > 0, "Not Invested");
         require(tokensToRelease[msg.sender] > 0, "Their is no tokens to claim");
-        require(tgeTimeStamp < block.timestamp);
-        uint256 currentTimeDiff = block.timestamp - tgeTimeStamp;
+        require(vestingDetails.tgeTimeStamp < block.timestamp);
+        uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
 
-        if (isLinearVesting) {
-            if (cliffTime > 0) {
+        if (vestingDetails.isLinearVesting) {
+            if (vestingDetails.cliffTime > 0) {
                 require(
-                    block.timestamp > cliffTime,
+                    block.timestamp > vestingDetails.cliffTime,
                     "Cliff period you can't claim."
                 );
-                uint256 totalPercentageToRelease = 100 - tgeReleasePercentage;
-                uint256 timeDiffFromCliff = block.timestamp - cliffTime;
+                uint256 totalPercentageToRelease = 100 -
+                    vestingDetails.tgeReleasePercentage;
+                uint256 timeDiffFromCliff = block.timestamp -
+                    vestingDetails.cliffTime;
                 uint256 percentageToRelease = (timeDiffFromCliff /
-                    linearVestingPeriod) * totalPercentageToRelease;
+                    vestingDetails.linearVestingPeriod) *
+                    totalPercentageToRelease;
                 uint256 TokensToRelease = (tokensToRelease[msg.sender] *
                     percentageToRelease) / totalPercentageToRelease;
                 token.transfer(msg.sender, TokensToRelease);
@@ -161,9 +180,12 @@ contract AltForge is
                     totalTokensToRelease[msg.sender] = 0;
                 }
             } else {
-                uint256 totalPercentageToRelease = 100 - tgeReleasePercentage;
-                uint256 timeDiff = block.timestamp - tgeTimeStamp;
-                uint256 percentageToRelease = (timeDiff / linearVestingPeriod) *
+                uint256 totalPercentageToRelease = 100 -
+                    vestingDetails.tgeReleasePercentage;
+                uint256 timeDiff = block.timestamp -
+                    vestingDetails.tgeTimeStamp;
+                uint256 percentageToRelease = (timeDiff /
+                    vestingDetails.linearVestingPeriod) *
                     totalPercentageToRelease;
                 uint256 TokensToRelease = (tokensToRelease[msg.sender] *
                     percentageToRelease) / totalPercentageToRelease;
@@ -177,17 +199,20 @@ contract AltForge is
                 }
             }
         } else {
-            uint256 currentIteration = totalReleaseIterations -
+            uint256 currentIteration = vestingDetails.totalReleaseIterations -
                 tokenToReleaseIterations[msg.sender] +
                 1;
-            uint256 totalPercentageToRelease = 100 - tgeReleasePercentage;
-            uint256 requiredTime = currentIteration * rewardReleasePeriod;
+            uint256 totalPercentageToRelease = 100 -
+                vestingDetails.tgeReleasePercentage;
+            uint256 requiredTime = currentIteration *
+                vestingDetails.rewardReleasePeriod;
             require(
                 currentTimeDiff >= requiredTime,
                 "Release period not yet reached"
             );
             uint256 rewardReleasePercentage = (tokensToRelease[msg.sender] /
-                totalReleaseIterations) * totalPercentageToRelease;
+                vestingDetails.totalReleaseIterations) *
+                totalPercentageToRelease;
 
             token.transfer(
                 msg.sender,
@@ -237,7 +262,7 @@ contract AltForge is
     @dev function for getting vesting end time
      */
     function getVestingEndTime() public view returns (uint256) {
-        return investedTime[msg.sender] + totalVestingPeriod;
+        return investedTime[msg.sender] + vestingDetails.totalVestingPeriod;
     }
 
     /**
@@ -255,7 +280,9 @@ contract AltForge is
      */
     function getTokenIterationStage() public view returns (uint256) {
         return
-            totalReleaseIterations - tokenToReleaseIterations[msg.sender] + 1;
+            vestingDetails.totalReleaseIterations -
+            tokenToReleaseIterations[msg.sender] +
+            1;
     }
 
     /**
