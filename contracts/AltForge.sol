@@ -56,7 +56,7 @@ contract AltForge is
         uint256 _tgeTimeStamp,
         uint256 _tgeReleasePercentage,
         uint256 _cliffTime,
-        uint256 _linearVestPeriod,
+        uint256 _linearVestingPeriod,
         uint256 _rewardReleasePeriod,
         uint256 _totalVestingPeriod,
         uint256 _withdrawPeriod,
@@ -68,9 +68,9 @@ contract AltForge is
         vestingDetails.tgeTimeStamp = _tgeTimeStamp;
         vestingDetails.tgeReleasePercentage = _tgeReleasePercentage;
         vestingDetails.withdrawPeriod = _withdrawPeriod * DAY_IN_SECONDS;
-        if (_linearVestPeriod > 0) {
+        if (_linearVestingPeriod > 0) {
             vestingDetails.linearVestingPeriod =
-                _linearVestPeriod *
+                _linearVestingPeriod *
                 MONTH_IN_SECONDS;
             if (_cliffTime > 0) {
                 vestingDetails.cliffTime = _cliffTime * MONTH_IN_SECONDS;
