@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox-viem";
-import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-ignition-viem";
 
 const config: HardhatUserConfig = {
   networks: {
@@ -11,11 +10,13 @@ const config: HardhatUserConfig = {
       ],
     },
   },
+
   solidity: {
     compilers: [
       {
         version: "0.8.20",
         settings: {
+          viaIR: true,
           optimizer: {
             enabled: true,
             runs: 200,
