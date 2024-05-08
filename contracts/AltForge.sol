@@ -62,6 +62,17 @@ contract AltForge is
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) external initializer {
+        require(_startsAt <= block.timestamp, "Invalid start time");
+        require(_startsAt < endsAt, "Invalid campaign time");
+        require(targetRaise > 0, "Invalid target raise");
+        require(_investToken != address(0), "Invest token address not found");
+        require(_token != address(0), "Project token not found");
+        require(
+            _tgeTimeStamp > _startsAt,
+            "TGE will only happen after campaign start choose correct tge timestamp"
+        );
+        require(_withdrawPeriod != 0, "Withdraw period value needed");
+        require(_pricePerToken != 0, "Price per token value needed");
         startsAt = _startsAt;
         endsAt = _endsAt;
         targetRaise = _targetRaise;
@@ -79,7 +90,6 @@ contract AltForge is
         } else {
             if (_totalVestingPeriod == 0) {
                 revert("Invalid Vesting Type");
-                return;
             }
             vestingDetails.totalVestingPeriod =
                 _totalVestingPeriod *
