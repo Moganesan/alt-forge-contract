@@ -84,7 +84,7 @@ contract AltForge is
                 _linearVestingPeriod *
                 MONTH_IN_SECONDS;
             if (_cliffTime > 0) {
-                vestingDetails.cliffTime = _cliffTime * MONTH_IN_SECONDS;
+                vestingDetails.cliffTime = _cliffTime * DAY_IN_SECONDS;
             }
             vestingDetails.isLinearVesting = true;
         } else {
