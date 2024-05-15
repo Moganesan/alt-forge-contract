@@ -56,20 +56,19 @@ describe("Alt Forge", function () {
     // price per token
     const pricePerToken = parseEther("0.1");
 
-    altForge.write.initialize(
-      rewardToken.address,
-      investToken.address,
-      targetRaise,
-      startsAt,
-      endsAt,
-      tgeTimestamp,
-      tgeReleasePercentage,
-      cliffTime,
-      linearVestingPeriod,
-      rewardReleasePeriod,
-      totalVestingPeriod,
-      withdrawPeriod,
-      pricePerToken
-    );
+    altForge.write.initialize({
+      "0": rewardToken.address,
+      "1": investToken.address,
+      "2": BigInt(targetRaise),
+      "3": BigInt(startsAt),
+      "4": BigInt(endsAt),
+      "5": BigInt(tgeTimestamp),
+      "6": BigInt(tgeReleasePercentage),
+      "7": BigInt(cliffTime),
+      "8": BigInt(linearVestingPeriod),
+      "9": BigInt(rewardReleasePeriod),
+      "10": BigInt(totalVestingPeriod),
+      "11": BigInt(),
+    });
   });
 });
