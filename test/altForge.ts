@@ -87,7 +87,7 @@ describe("Alt Forge", async function () {
       const altForge = await loadFixture(deployAltForgeFixer);
       const investToken = await loadFixture(deployInvestTokenFixer);
       const rewardToken = await loadFixture(deployRewardTokenFixer);
-      console.log(zeroAddress);
+
       await altForge.write.initialize([
         zeroAddress,
         investToken.address,
@@ -106,6 +106,34 @@ describe("Alt Forge", async function () {
     } catch (err) {
       const revertMessage = extractRevertMessage(err);
       expect(revertMessage).to.equal("404: Project token");
+    }
+  });
+
+  it("Should throw an error when passing empty invest token address", async function () {
+    try {
+      const altForge = await loadFixture(deployAltForgeFixer);
+      const investToken = await loadFixture(deployInvestTokenFixer);
+      const rewardToken = await loadFixture(deployRewardTokenFixer);
+
+      await altForge.write.initialize([
+        rewardToken.address,
+        zeroAddress,
+        BigInt(targetRaise),
+        BigInt(startsAt + 2),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp.getTime()),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingPeriod),
+        BigInt(rewardReleasePeriod),
+        BigInt(totalVestingPeriod),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+
+      expect(revertMessage).to.equal("404: Invest token");
     }
   });
 
