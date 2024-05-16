@@ -86,7 +86,6 @@ describe("Alt Forge", async function () {
     try {
       const altForge = await loadFixture(deployAltForgeFixer);
       const investToken = await loadFixture(deployInvestTokenFixer);
-      const rewardToken = await loadFixture(deployRewardTokenFixer);
 
       await altForge.write.initialize([
         zeroAddress,
@@ -109,10 +108,9 @@ describe("Alt Forge", async function () {
     }
   });
 
-  it("Should throw an error when passing empty invest token address", async function () {
+  it("Should throw an error when passing empty invest token address.", async function () {
     try {
       const altForge = await loadFixture(deployAltForgeFixer);
-      const investToken = await loadFixture(deployInvestTokenFixer);
       const rewardToken = await loadFixture(deployRewardTokenFixer);
 
       await altForge.write.initialize([
@@ -134,6 +132,63 @@ describe("Alt Forge", async function () {
       const revertMessage = extractRevertMessage(err);
 
       expect(revertMessage).to.equal("404: Invest token");
+    }
+  });
+
+  it("Should throw an error when passing invalid start time.", async function () {
+    try {
+      const altForge = await loadFixture(deployAltForgeFixer);
+
+      const rewardToken = await loadFixture(deployRewardTokenFixer);
+
+      const investToken = await loadFixture(deployInvestTokenFixer);
+
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt + 1000),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp.getTime()),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingPeriod),
+        BigInt(rewardReleasePeriod),
+        BigInt(totalVestingPeriod),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+
+      expect(revertMessage).to.equal("Invalid start time");
+    }
+  });
+
+  it("Should throw and error when passing invalid campaign time.", async function () {
+    try {
+      const altForge = await loadFixture(deployAltForgeFixer);
+      const rewardToken = await loadFixture(deployRewardTokenFixer);
+      const investToken = await loadFixture(deployInvestTokenFixer);
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(startsAt),
+        BigInt(tgeTimestamp.getTime()),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingPeriod),
+        BigInt(rewardReleasePeriod),
+        BigInt(totalVestingPeriod),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+
+      expect(revertMessage).to.equal("Invalid campaign time");
     }
   });
 
