@@ -6,6 +6,8 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
+import "hardhat/console.sol";
+
 contract AltForge is
     Initializable,
     ERC20Upgradeable,
@@ -62,17 +64,21 @@ contract AltForge is
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) external initializer {
+        console.log("Starts At", _startsAt);
+        console.log("Current Block Time", block.timestamp);
+        console.log("Ends At", _endsAt);
+        console.log("Target Raise", _targetRaise);
         require(_startsAt <= block.timestamp, "Invalid start time");
-        require(_startsAt < endsAt, "Invalid campaign time");
-        require(targetRaise > 0, "Invalid target raise");
-        require(_investToken != address(0), "Invest token address not found");
-        require(_token != address(0), "Project token not found");
+        require(_startsAt < _endsAt, "Invalid campaign time");
+        require(_targetRaise > 0, "Invalid target raise");
+        require(_investToken != address(0), "404: Invest token");
+        require(_token != address(0), "404: Project token");
         require(
             _tgeTimeStamp > _startsAt,
             "TGE will only happen after campaign start choose correct tge timestamp"
         );
-        require(_withdrawPeriod != 0, "Withdraw period value needed");
-        require(_pricePerToken != 0, "Price per token value needed");
+        require(_withdrawPeriod != 0, "404: Withdraw period");
+        require(_pricePerToken != 0, "404: Price per token");
         startsAt = _startsAt;
         endsAt = _endsAt;
         targetRaise = _targetRaise;
@@ -89,7 +95,7 @@ contract AltForge is
             vestingDetails.isLinearVesting = true;
         } else {
             if (_totalVestingPeriod == 0) {
-                revert("Invalid Vesting Type");
+                revert("Invalid vesting period");
             }
             vestingDetails.totalVestingPeriod =
                 _totalVestingPeriod *
