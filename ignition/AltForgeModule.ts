@@ -1,10 +1,11 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
-import { ignition } from "hardhat";
-export default buildModule("AltForge", (m) => {
-  const altForge = m.contract("AltForge");
+import {
+  NamedArtifactContractDeploymentFuture,
+  buildModule,
+} from "@nomicfoundation/ignition-core";
 
-  const investToken = m.contract("USDT");
-  const rewardToken = m.contract("Reward");
+export default buildModule("AltForge", (m) => {
+  const altForge: NamedArtifactContractDeploymentFuture<"AltForge"> =
+    m.contract("AltForge");
 
   return {
     altForge,
