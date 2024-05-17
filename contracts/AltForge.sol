@@ -93,6 +93,9 @@ contract AltForge is
             if (_totalVestingPeriod == 0) {
                 revert("Invalid vesting period");
             }
+            if (_cliffTime > 0) {
+                vestingDetails.cliffTime = _cliffTime * DAY_IN_SECONDS;
+            }
             vestingDetails.totalVestingPeriod =
                 _totalVestingPeriod *
                 MONTH_IN_SECONDS;
@@ -212,6 +215,12 @@ contract AltForge is
                 }
             }
         } else {
+            if (vestingDetails.cliffTime > 0) {
+                require(
+                    block.timestamp > vestingDetails.cliffTime,
+                    "Cliff period you can't claim."
+                );
+            }
             uint256 currentIteration = vestingDetails.totalReleaseIterations -
                 tokenToReleaseIterations[msg.sender] +
                 1;
