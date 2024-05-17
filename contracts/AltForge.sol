@@ -64,10 +64,6 @@ contract AltForge is
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) external initializer {
-        console.log("Starts At", _startsAt);
-        console.log("Current Block Time", block.timestamp);
-        console.log("Ends At", _endsAt);
-        console.log("Target Raise", _targetRaise);
         require(_startsAt <= block.timestamp, "Invalid start time");
         require(_startsAt < _endsAt, "Invalid campaign time");
         require(_targetRaise > 0, "Invalid target raise");
