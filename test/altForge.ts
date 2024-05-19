@@ -431,6 +431,38 @@ describe("Alt Forge", async function () {
     expect(daysInDifference).to.equal(31);
   });
 
+  it("TGE timestamp should be equal to the time 5 days after the startTime.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+
+    await altForge.write.initialize([
+      rewardToken.address,
+      investToken.address,
+      BigInt(targetRaise),
+      BigInt(startsAt),
+      BigInt(endsAt),
+      BigInt(tgeTimestamp),
+      BigInt(tgeReleasePercentage),
+      BigInt(cliffTime),
+      BigInt(linearVestingPeriod),
+      BigInt(rewardReleasePeriod),
+      BigInt(totalVestingPeriod),
+      BigInt(withdrawPeriod),
+      BigInt(pricePerToken),
+    ]);
+
+    const StartsAt = new Date(Number(await altForge.read.startsAt()) * 1000);
+    const vestingDetails = await altForge.read.vestingDetails();
+    const TgeTimeStamp = new Date(Number(vestingDetails[0]) * 1000);
+
+    const timeDifference = TgeTimeStamp.getTime() - StartsAt.getTime();
+
+    const daysInDifference = timeDifference / (1000 * 60 * 60 * 24);
+
+    expect(daysInDifference).to.equal(5);
+  });
+
   const extractRevertMessage = (err: any) => {
     const message = String(JSON.parse(JSON.stringify(err)).details || "");
     const revertReasonPattern = /reverted with reason string '([^']+)'/;
