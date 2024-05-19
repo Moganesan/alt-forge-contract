@@ -19,7 +19,7 @@ contract AltForge is
     uint256 public totalRaise;
     uint256 public startsAt;
     uint256 public endsAt;
-    VestingDetails vestingDetails;
+    VestingDetails public vestingDetails;
 
     uint256 public pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
