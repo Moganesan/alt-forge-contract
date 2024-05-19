@@ -90,7 +90,7 @@ contract AltForge is
             }
             vestingDetails.isLinearVesting = true;
         } else {
-            if (_totalVestingPeriod == 0) {
+            if (_totalVestingPeriod == 0 || _rewardReleasePeriod == 0) {
                 revert("Invalid vesting period");
             }
             if (_cliffTime > 0) {
