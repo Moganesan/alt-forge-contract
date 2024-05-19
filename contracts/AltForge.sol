@@ -84,11 +84,13 @@ contract AltForge is
             (_withdrawPeriod * DAY_IN_SECONDS) +
             _startsAt;
         if (_linearVestingPeriod > 0) {
-            vestingDetails.linearVestingPeriod =
+            (vestingDetails.linearVestingPeriod =
                 _linearVestingPeriod *
-                MONTH_IN_SECONDS;
+                MONTH_IN_SECONDS) + _startsAt;
             if (_cliffTime > 0) {
-                vestingDetails.cliffTime = _cliffTime * DAY_IN_SECONDS;
+                vestingDetails.cliffTime =
+                    (_cliffTime * DAY_IN_SECONDS) +
+                    _startsAt;
             }
             vestingDetails.isLinearVesting = true;
         } else {
@@ -96,14 +98,16 @@ contract AltForge is
                 revert("Invalid vesting period");
             }
             if (_cliffTime > 0) {
-                vestingDetails.cliffTime = _cliffTime * DAY_IN_SECONDS;
+                vestingDetails.cliffTime =
+                    (_cliffTime * DAY_IN_SECONDS) +
+                    _startsAt;
             }
             vestingDetails.totalVestingPeriod =
-                _totalVestingPeriod *
-                MONTH_IN_SECONDS;
+                (_totalVestingPeriod * MONTH_IN_SECONDS) +
+                _startsAt;
             vestingDetails.rewardReleasePeriod =
-                _rewardReleasePeriod *
-                DAY_IN_SECONDS;
+                (_rewardReleasePeriod * DAY_IN_SECONDS) +
+                _startsAt;
             vestingDetails.totalReleaseIterations =
                 vestingDetails.totalVestingPeriod /
                 vestingDetails.rewardReleasePeriod;
