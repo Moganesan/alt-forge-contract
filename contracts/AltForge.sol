@@ -84,9 +84,9 @@ contract AltForge is
             (_withdrawPeriod * DAY_IN_SECONDS) +
             _startsAt;
         if (_linearVestingPeriod > 0) {
-            (vestingDetails.linearVestingPeriod =
-                _linearVestingPeriod *
-                MONTH_IN_SECONDS) + _startsAt;
+            vestingDetails.linearVestingPeriod =
+                (_linearVestingPeriod * MONTH_IN_SECONDS) +
+                _startsAt;
             if (_cliffTime > 0) {
                 vestingDetails.cliffTime =
                     (_cliffTime * DAY_IN_SECONDS) +
