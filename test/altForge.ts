@@ -463,6 +463,38 @@ describe("Alt Forge", async function () {
     expect(daysInDifference).to.equal(5);
   });
 
+  it("Withdraw period timestamp should be equal to the time 3 days after the startTime.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+
+    await altForge.write.initialize([
+      rewardToken.address,
+      investToken.address,
+      BigInt(targetRaise),
+      BigInt(startsAt),
+      BigInt(endsAt),
+      BigInt(tgeTimestamp),
+      BigInt(tgeReleasePercentage),
+      BigInt(cliffTime),
+      BigInt(linearVestingPeriod),
+      BigInt(rewardReleasePeriod),
+      BigInt(totalVestingPeriod),
+      BigInt(withdrawPeriod),
+      BigInt(pricePerToken),
+    ]);
+
+    const StartsAt = new Date(Number(await altForge.read.startsAt()) * 1000);
+    const vestingDetails = await altForge.read.vestingDetails();
+    const withdrawTimestamp = new Date(Number(vestingDetails[6]) * 1000);
+    const timeDifference = withdrawTimestamp.getTime() - StartsAt.getTime();
+    const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+
+    expect(daysDifference).to.equal(3);
+  });
+
+  it("Linear vesting period timestamp should be equal to the time 10 months after the startTime.", async function () {});
+
   const extractRevertMessage = (err: any) => {
     const message = String(JSON.parse(JSON.stringify(err)).details || "");
     const revertReasonPattern = /reverted with reason string '([^']+)'/;
