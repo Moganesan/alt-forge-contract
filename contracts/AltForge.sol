@@ -23,18 +23,22 @@ contract AltForge is
 
     uint256 public pricePerToken;
     uint256 public constant DAY_IN_SECONDS = 1 days;
-    uint256 public constant MONTH_IN_SECONDS = 30 days;
 
     struct VestingDetails {
         uint256 tgeTimeStamp;
         uint256 tgeReleasePercentage;
         uint256 cliffTime;
-        uint256 linearVestingPeriod;
+        VestingScheduleDetails linearVestingDetails;
         uint256 rewardReleasePeriod;
-        uint256 totalVestingPeriod;
+        VestingScheduleDetails vestingPeriod;
         uint256 withdrawPeriod;
         uint256 totalReleaseIterations;
         bool isLinearVesting;
+    }
+
+    struct VestingScheduleDetails {
+        uint256 startsAt;
+        uint256 endsAt;
     }
 
     mapping(address => uint256) public investors;
@@ -58,9 +62,9 @@ contract AltForge is
         uint256 _tgeTimeStamp,
         uint256 _tgeReleasePercentage,
         uint256 _cliffTime,
-        uint256 _linearVestingPeriod,
+        VestingScheduleDetails _linearVestingDetails,
         uint256 _rewardReleasePeriod,
-        uint256 _totalVestingPeriod,
+        VestingScheduleDetails _vestingPeriod,
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) external initializer {
@@ -83,10 +87,14 @@ contract AltForge is
         vestingDetails.withdrawPeriod =
             (_withdrawPeriod * DAY_IN_SECONDS) +
             _startsAt;
-        if (_linearVestingPeriod > 0) {
-            vestingDetails.linearVestingPeriod =
-                (_linearVestingPeriod * MONTH_IN_SECONDS) +
-                _startsAt;
+        if (
+            _linearVestingDetails.startsAt > 0 & _linearVestingDetails.endsAt >
+            0
+        ) {
+            vestingDetails.linearVestingDetails.startsAt = _linearVestingDetails
+                .startsAt;
+            vestingDetails.linearVestingDetails.endsAt = _linearVestingDetails
+                .endsAt;
             if (_cliffTime > 0) {
                 vestingDetails.cliffTime =
                     (_cliffTime * DAY_IN_SECONDS) +
@@ -94,7 +102,7 @@ contract AltForge is
             }
             vestingDetails.isLinearVesting = true;
         } else {
-            if (_totalVestingPeriod == 0 || _rewardReleasePeriod == 0) {
+            if (_vestingPeriod.startsAt == 0 || _vestingPeriod.endsAt == 0) {
                 revert("Invalid vesting period");
             }
             if (_cliffTime > 0) {
@@ -102,9 +110,9 @@ contract AltForge is
                     (_cliffTime * DAY_IN_SECONDS) +
                     _startsAt;
             }
-            vestingDetails.totalVestingPeriod =
-                (_totalVestingPeriod * MONTH_IN_SECONDS) +
-                _startsAt;
+            vestingDetails.vestingPeriod.startsAt = _vestingPeriod.startsAt;
+            vestingDetails.vestingPeriod.endsAt = _vestingPeriod.endsAt;
+            (_totalVestingPeriod * MONTH_IN_SECONDS) + _startsAt;
             vestingDetails.rewardReleasePeriod =
                 (_rewardReleasePeriod * DAY_IN_SECONDS) +
                 _startsAt;
