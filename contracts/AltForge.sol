@@ -42,6 +42,7 @@ contract AltForge is
     }
 
     mapping(address => uint256) public investors;
+    mapping(address => bool) public isTGEReleased;
     mapping(address => uint256) public tokensToRelease;
     mapping(address => uint256) public totalTokensToRelease;
     mapping(address => uint256) public tokenToReleaseIterations;
@@ -62,9 +63,9 @@ contract AltForge is
         uint256 _tgeTimeStamp,
         uint256 _tgeReleasePercentage,
         uint256 _cliffTime,
-        VestingScheduleDetails _linearVestingDetails,
+        VestingScheduleDetails memory _linearVestingDetails,
         uint256 _rewardReleasePeriod,
-        VestingScheduleDetails _vestingPeriod,
+        VestingScheduleDetails memory _vestingPeriod,
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) external initializer {
@@ -86,11 +87,20 @@ contract AltForge is
         vestingDetails.tgeReleasePercentage = _tgeReleasePercentage;
         vestingDetails.withdrawPeriod =
             (_withdrawPeriod * DAY_IN_SECONDS) +
-            _startsAt;
+            _tgeTimeStamp;
         if (
-            _linearVestingDetails.startsAt > 0 & _linearVestingDetails.endsAt >
+            _linearVestingDetails.startsAt !=
+            0 & _linearVestingDetails.endsAt !=
             0
         ) {
+            require(
+                _linearVestingDetails.startsAt > _tgeTimeStamp,
+                "Invalid vesting schedule"
+            );
+            require(
+                _linearVestingDetails.endsAt > _linearVestingDetails.startsAt,
+                "Invalid vesting schedule"
+            );
             vestingDetails.linearVestingDetails.startsAt = _linearVestingDetails
                 .startsAt;
             vestingDetails.linearVestingDetails.endsAt = _linearVestingDetails
@@ -102,22 +112,25 @@ contract AltForge is
             }
             vestingDetails.isLinearVesting = true;
         } else {
-            if (_vestingPeriod.startsAt == 0 || _vestingPeriod.endsAt == 0) {
+            if (
+                _vestingPeriod.startsAt == 0 ||
+                _vestingPeriod.endsAt == 0 ||
+                _rewardReleasePeriod == 0
+            ) {
                 revert("Invalid vesting period");
             }
             if (_cliffTime > 0) {
                 vestingDetails.cliffTime =
                     (_cliffTime * DAY_IN_SECONDS) +
-                    _startsAt;
+                    _tgeTimeStamp;
             }
             vestingDetails.vestingPeriod.startsAt = _vestingPeriod.startsAt;
             vestingDetails.vestingPeriod.endsAt = _vestingPeriod.endsAt;
-            (_totalVestingPeriod * MONTH_IN_SECONDS) + _startsAt;
-            vestingDetails.rewardReleasePeriod =
-                (_rewardReleasePeriod * DAY_IN_SECONDS) +
-                _startsAt;
+            vestingDetails.rewardReleasePeriod = (_rewardReleasePeriod *
+                DAY_IN_SECONDS);
             vestingDetails.totalReleaseIterations =
-                vestingDetails.totalVestingPeriod /
+                vestingDetails.vestingPeriod.endsAt -
+                vestingDetails.vestingPeriod.startsAt /
                 vestingDetails.rewardReleasePeriod;
         }
         pricePerToken = _pricePerToken;
@@ -150,7 +163,6 @@ contract AltForge is
                 .totalReleaseIterations;
         }
         tokensToRelease[msg.sender] = _amount / pricePerToken;
-        totalTokensToRelease[msg.sender] = _amount / pricePerToken;
         totalRaise += _amount;
 
         emit _invest(msg.sender, _amount, block.timestamp);
@@ -161,7 +173,7 @@ contract AltForge is
      */
     function withdraw() public {
         require(investors[msg.sender] > 0, "Not Invested");
-        require(block.timestamp > investedTime[msg.sender]);
+        require(block.timestamp > vestingDetails.tgeTimeStamp);
         uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
 
         require(
@@ -172,7 +184,6 @@ contract AltForge is
         totalRaise -= investors[msg.sender];
         investors[msg.sender] = 0;
         tokensToRelease[msg.sender] = 0;
-        totalTokensToRelease[msg.sender] = 0;
 
         emit _withdraw(msg.sender, block.timestamp);
     }
@@ -183,93 +194,82 @@ contract AltForge is
     function claimToken() public {
         require(investors[msg.sender] > 0, "Not Invested");
         require(tokensToRelease[msg.sender] > 0, "Their is no tokens to claim");
-        require(vestingDetails.tgeTimeStamp < block.timestamp);
+        require(
+            vestingDetails.tgeTimeStamp < block.timestamp,
+            "Token not generated"
+        );
+        require(
+            vestingDetails.cliffTime < block.timestamp,
+            "Cliff period you can't claim."
+        );
         uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
 
         if (vestingDetails.isLinearVesting) {
+            require(
+                block.timestamp > vestingDetails.linearVestingDetails.startsAt,
+                "Vesting not started"
+            );
+            require(
+                block.timestamp < vestingDetails.linearVestingDetails.endsAt,
+                "Vesting end"
+            );
             if (vestingDetails.cliffTime > 0) {
-                require(
-                    block.timestamp > vestingDetails.cliffTime,
-                    "Cliff period you can't claim."
-                );
-                uint256 totalPercentageToRelease = 100 -
-                    vestingDetails.tgeReleasePercentage;
-                uint256 timeDiffFromCliff = block.timestamp -
-                    vestingDetails.cliffTime;
-                uint256 percentageToRelease = (timeDiffFromCliff /
-                    vestingDetails.linearVestingPeriod) *
-                    totalPercentageToRelease;
-                uint256 TokensToRelease = (tokensToRelease[msg.sender] *
-                    percentageToRelease) / totalPercentageToRelease;
-                token.transfer(msg.sender, TokensToRelease);
-                tokensToRelease[msg.sender] =
-                    tokensToRelease[msg.sender] -
-                    TokensToRelease;
+                if (isTGEReleased[msg.sender] == false) {
+                    uint256 tgeTokens = (tokensToRelease[msg.sender] *
+                        vestingDetails.tgeReleasePercentage) / 100;
+                    uint256 vestedTokens = calculateVestedAmount(
+                        block.timestamp,
+                        msg.sender
+                    );
+                    tokensToRelease[msg.sender] -= vestedTokens;
 
-                if (tokensToRelease[msg.sender] == 0) {
-                    totalTokensToRelease[msg.sender] = 0;
+                    token.transfer(msg.sender, tgeTokens + vestedTokens);
+                    emit _claimToken(msg.sender, vestedTokens);
+                } else {
+                    uint256 vestedTokens = calculateVestedAmount(
+                        block.timestamp,
+                        msg.sender
+                    );
+                    tokensToRelease[msg.sender] -= vestedTokens;
+
+                    token.transfer(msg.sender, vestedTokens);
+                    emit _claimToken(msg.sender, vestedTokens);
                 }
             } else {
-                uint256 totalPercentageToRelease = 100 -
-                    vestingDetails.tgeReleasePercentage;
-                uint256 timeDiff = block.timestamp -
-                    vestingDetails.tgeTimeStamp;
-                uint256 percentageToRelease = (timeDiff /
-                    vestingDetails.linearVestingPeriod) *
-                    totalPercentageToRelease;
-                uint256 TokensToRelease = (tokensToRelease[msg.sender] *
-                    percentageToRelease) / totalPercentageToRelease;
-                token.transfer(msg.sender, TokensToRelease);
-                tokensToRelease[msg.sender] =
-                    tokensToRelease[msg.sender] -
-                    TokensToRelease;
+                uint256 vestedTokens = calculateVestedAmount(
+                    block.timestamp,
+                    msg.sender
+                );
 
-                if (tokensToRelease[msg.sender] == 0) {
-                    totalTokensToRelease[msg.sender] = 0;
-                }
+                tokensToRelease[msg.sender] -= vestedTokens;
+
+                token.transfer(msg.sender, vestedTokens);
+                emit _claimToken(msg.sender, vestedTokens);
             }
         } else {
-            if (vestingDetails.cliffTime > 0) {
-                require(
-                    block.timestamp > vestingDetails.cliffTime,
-                    "Cliff period you can't claim."
-                );
-            }
+            require(
+                totalTokensToRelease[msg.sender] <=
+                    vestingDetails.totalReleaseIterations,
+                "All tokens claimed"
+            );
             uint256 currentIteration = vestingDetails.totalReleaseIterations -
                 tokenToReleaseIterations[msg.sender] +
                 1;
-            uint256 totalPercentageToRelease = 100 -
-                vestingDetails.tgeReleasePercentage;
+
             uint256 requiredTime = currentIteration *
                 vestingDetails.rewardReleasePeriod;
             require(
                 currentTimeDiff >= requiredTime,
                 "Release period not yet reached"
             );
-            uint256 rewardReleasePercentage = (tokensToRelease[msg.sender] /
-                vestingDetails.totalReleaseIterations) *
-                totalPercentageToRelease;
-
-            token.transfer(
-                msg.sender,
-                tokensToRelease[msg.sender] *
-                    (rewardReleasePercentage / totalPercentageToRelease)
-            );
-            tokensToRelease[msg.sender] =
-                tokensToRelease[msg.sender] -
-                tokensToRelease[msg.sender] *
-                (rewardReleasePercentage / totalPercentageToRelease);
+            uint256 TokensToRelease = tokensToRelease[msg.sender] /
+                vestingDetails.vestingPeriod.startsAt +
+                vestingDetails.vestingPeriod.endsAt;
+            tokensToRelease[msg.sender] -= TokensToRelease;
+            token.transfer(msg.sender, TokensToRelease);
             tokenToReleaseIterations[msg.sender] -= 1;
 
-            if (tokensToRelease[msg.sender] == 0) {
-                totalTokensToRelease[msg.sender] = 0;
-            }
-
-            emit _claimToken(
-                msg.sender,
-                tokensToRelease[msg.sender] *
-                    (rewardReleasePercentage / totalPercentageToRelease)
-            );
+            emit _claimToken(msg.sender, TokensToRelease);
         }
     }
 
@@ -294,12 +294,12 @@ contract AltForge is
         return investedTime[msg.sender];
     }
 
-    /**
-    @dev function for getting vesting end time
-     */
-    function getVestingEndTime() public view returns (uint256) {
-        return investedTime[msg.sender] + vestingDetails.totalVestingPeriod;
-    }
+    // /**
+    // @dev function for getting vesting end time
+    //  */
+    // function getVestingEndTime() public view returns (uint256) {
+    //     return investedTime[msg.sender] + vestingDetails.totalVestingPeriod;
+    // }
 
     /**
      * @dev function for getting total claimed percentage
@@ -328,6 +328,26 @@ contract AltForge is
         return tokensToRelease[msg.sender];
     }
 
+    /**
+    @dev function getting vested amount to claim
+     */
+    function calculateVestedAmount(
+        uint256 _currentTime,
+        address _investor
+    ) internal view returns (uint256) {
+        if (_currentTime <= vestingDetails.linearVestingDetails.startsAt) {
+            return 0;
+        } else if (_currentTime >= vestingDetails.linearVestingDetails.endsAt) {
+            return tokensToRelease[_investor];
+        } else {
+            uint256 vestingDuration = vestingDetails
+                .linearVestingDetails
+                .endsAt - vestingDetails.linearVestingDetails.startsAt;
+            uint256 timeElapsed = _currentTime -
+                vestingDetails.linearVestingDetails.startsAt;
+            return (tokensToRelease[_investor] * timeElapsed) / vestingDuration;
+        }
+    }
     /**
     @dev function for getting raised percentage
     */
