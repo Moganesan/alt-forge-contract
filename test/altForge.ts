@@ -25,7 +25,7 @@ describe("Alt Forge", async function () {
   // setting tokenGeneration timestamp
   const tgeTimeStampInstance = new Date();
 
-  // setting tokenGeneration timestamp after five deys after campaign starts
+  // setting tokenGeneration timestamp aft4er five deys after campaign starts
   tgeTimeStampInstance.setDate(new Date().getDate() + 5);
 
   const tgeTimestamp = Math.round(tgeTimeStampInstance.getTime() / 1000);
@@ -36,34 +36,33 @@ describe("Alt Forge", async function () {
   // cliff time in days
   const cliffTime = 30;
 
-  // linear vesting period in months
-  const linearVestingPeriod = 9;
+  // linear vesting period startsAt
+  const linearVestingStartsAt =
+    new Date(tgeTimestamp * 1000).getTime() / 1000 + 1;
+
+  // linear vesting period endsAt
+  let linearVestingEndsAt: any = new Date(linearVestingStartsAt * 1000);
+  linearVestingEndsAt.setDate(
+    new Date(linearVestingStartsAt * 1000).getDate() + 365
+  );
+  linearVestingEndsAt = linearVestingEndsAt.getTime() / 1000;
 
   // reward release period in months
   // note: if linear vesting period is set reward release period not needed
   const rewardReleasePeriod = 0;
 
-  // total vesting period in monts
+  // total vesting period in start and end time
   // note: if linear vesting period is set total vesting period not needed
-  const totalVestingPeriod = 0;
+  const vestingPeriodStartsAt = new Date(tgeTimestamp * 1000).getTime() / 1000;
+  let vestingPeriodEndsAt: any = new Date(vestingPeriodStartsAt * 1000);
+  vestingPeriodEndsAt.setDate(vestingPeriodEndsAt.getDate() + 365);
+  vestingPeriodEndsAt = vestingPeriodEndsAt.getTime();
 
   // withdraw period in days
   const withdrawPeriod = 3;
 
   // price per token
   const pricePerToken = parseEther("0.1");
-
-  // localTime option
-  const localTimeOption = {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true, // for 12-hour time format with AM/PM
-  };
 
   const deployAltForgeFixer = async () => {
     const { altForge } = await ignition.deploy(AltForgeModule);
@@ -108,9 +107,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -134,9 +135,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -164,9 +167,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -191,9 +196,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -219,9 +226,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -247,9 +256,11 @@ describe("Alt Forge", async function () {
         BigInt(startsAt),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -279,9 +290,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(BigInt("0")),
         BigInt(pricePerToken),
       ]);
@@ -307,9 +320,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingPeriod),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt("0"),
       ]);
@@ -336,8 +351,10 @@ describe("Alt Forge", async function () {
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
         BigInt("0"),
+        BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
         BigInt("0"),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -363,9 +380,11 @@ describe("Alt Forge", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
         BigInt("0"),
-        BigInt("0"),
-        BigInt(totalVestingPeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -393,6 +412,8 @@ describe("Alt Forge", async function () {
         BigInt("0"),
         BigInt("0"),
         BigInt("0"),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -415,9 +436,11 @@ describe("Alt Forge", async function () {
       BigInt(tgeTimestamp),
       BigInt(tgeReleasePercentage),
       BigInt(cliffTime),
-      BigInt(linearVestingPeriod),
+      BigInt(linearVestingStartsAt),
+      BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(totalVestingPeriod),
+      BigInt("0"),
+      BigInt("0"),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -445,9 +468,11 @@ describe("Alt Forge", async function () {
       BigInt(tgeTimestamp),
       BigInt(tgeReleasePercentage),
       BigInt(cliffTime),
-      BigInt(linearVestingPeriod),
+      BigInt(linearVestingStartsAt),
+      BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(totalVestingPeriod),
+      BigInt(vestingPeriodStartsAt),
+      BigInt(vestingPeriodEndsAt),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -477,9 +502,11 @@ describe("Alt Forge", async function () {
       BigInt(tgeTimestamp),
       BigInt(tgeReleasePercentage),
       BigInt(cliffTime),
-      BigInt(linearVestingPeriod),
+      BigInt(linearVestingStartsAt),
+      BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(totalVestingPeriod),
+      BigInt(vestingPeriodStartsAt),
+      BigInt(vestingPeriodEndsAt),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -493,7 +520,39 @@ describe("Alt Forge", async function () {
     expect(daysDifference).to.equal(3);
   });
 
-  it("Linear vesting period timestamp should be equal to the time 10 months after the startTime.", async function () {});
+  it("Linear vesting period timestamp should be equal to the time 365 after the startTime.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+
+    await altForge.write.initialize([
+      rewardToken.address,
+      investToken.address,
+      BigInt(targetRaise),
+      BigInt(startsAt),
+      BigInt(endsAt),
+      BigInt(tgeTimestamp),
+      BigInt(tgeReleasePercentage),
+      BigInt(cliffTime),
+      BigInt(linearVestingStartsAt),
+      BigInt(linearVestingEndsAt),
+      BigInt(rewardReleasePeriod),
+      BigInt(vestingPeriodStartsAt),
+      BigInt(vestingPeriodEndsAt),
+      BigInt(withdrawPeriod),
+      BigInt(pricePerToken),
+    ]);
+
+    const vestingDetails = await altForge.read.vestingDetails();
+    const linearVestingStartTime =
+      new Date(Number(vestingDetails[3].startsAt)).getTime() * 1000;
+    const linearVestingEndTime =
+      new Date(Number(vestingDetails[3].endsAt)).getTime() * 1000;
+
+    const timeDifference = linearVestingEndTime - linearVestingStartTime;
+    const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+    expect(daysDifference).to.equal(365);
+  });
 
   const extractRevertMessage = (err: any) => {
     const message = String(JSON.parse(JSON.stringify(err)).details || "");
