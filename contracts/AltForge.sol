@@ -89,15 +89,15 @@ contract AltForge is
         vestingDetails.tgeReleasePercentage = _tgeReleasePercentage;
         vestingDetails.withdrawPeriod =
             (_withdrawPeriod * DAY_IN_SECONDS) +
-            _tgeTimeStamp;
+            _startsAt;
         if (_linearVestingStartsAt != 0 && _linearVestingEndsAt != 0) {
             require(
                 _linearVestingStartsAt > _tgeTimeStamp,
-                "Invalid vesting schedule"
+                "Invalid vesting period"
             );
             require(
-                _linearVestingEndsAt > _linearVestingEndsAt,
-                "Invalid vesting schedule"
+                _linearVestingEndsAt > _linearVestingStartsAt,
+                "Invalid vesting period"
             );
             vestingDetails.linearVestingDetails = VestingScheduleDetails(
                 _linearVestingStartsAt,
@@ -117,6 +117,7 @@ contract AltForge is
             ) {
                 revert("Invalid vesting period");
             }
+
             if (_cliffTime > 0) {
                 vestingDetails.cliffTime =
                     (_cliffTime * DAY_IN_SECONDS) +
