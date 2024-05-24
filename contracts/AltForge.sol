@@ -68,7 +68,7 @@ contract AltForge is
         VestingScheduleDetails memory _vestingPeriod,
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
-    ) external initializer {
+    ) public initializer {
         require(_startsAt <= block.timestamp, "Invalid start time");
         require(_startsAt < _endsAt, "Invalid campaign time");
         require(_targetRaise > 0, "Invalid target raise");
@@ -89,9 +89,8 @@ contract AltForge is
             (_withdrawPeriod * DAY_IN_SECONDS) +
             _tgeTimeStamp;
         if (
-            _linearVestingDetails.startsAt !=
-            0 & _linearVestingDetails.endsAt !=
-            0
+            _linearVestingDetails.startsAt != 0 &&
+            _linearVestingDetails.endsAt != 0
         ) {
             require(
                 _linearVestingDetails.startsAt > _tgeTimeStamp,
@@ -213,34 +212,22 @@ contract AltForge is
                 block.timestamp < vestingDetails.linearVestingDetails.endsAt,
                 "Vesting end"
             );
-            if (vestingDetails.cliffTime > 0) {
-                if (isTGEReleased[msg.sender] == false) {
-                    uint256 tgeTokens = (tokensToRelease[msg.sender] *
-                        vestingDetails.tgeReleasePercentage) / 100;
-                    uint256 vestedTokens = calculateVestedAmount(
-                        block.timestamp,
-                        msg.sender
-                    );
-                    tokensToRelease[msg.sender] -= vestedTokens;
-
-                    token.transfer(msg.sender, tgeTokens + vestedTokens);
-                    emit _claimToken(msg.sender, vestedTokens);
-                } else {
-                    uint256 vestedTokens = calculateVestedAmount(
-                        block.timestamp,
-                        msg.sender
-                    );
-                    tokensToRelease[msg.sender] -= vestedTokens;
-
-                    token.transfer(msg.sender, vestedTokens);
-                    emit _claimToken(msg.sender, vestedTokens);
-                }
+            if (isTGEReleased[msg.sender] == false) {
+                uint256 tgeTokens = (tokensToRelease[msg.sender] *
+                    vestingDetails.tgeReleasePercentage) / 100;
+                uint256 vestedTokens = calculateVestedAmount(
+                    block.timestamp,
+                    msg.sender
+                );
+                tokensToRelease[msg.sender] -= vestedTokens;
+                isTGEReleased[msg.sender] = true;
+                token.transfer(msg.sender, tgeTokens + vestedTokens);
+                emit _claimToken(msg.sender, tgeTokens + vestedTokens);
             } else {
                 uint256 vestedTokens = calculateVestedAmount(
                     block.timestamp,
                     msg.sender
                 );
-
                 tokensToRelease[msg.sender] -= vestedTokens;
 
                 token.transfer(msg.sender, vestedTokens);
@@ -248,7 +235,7 @@ contract AltForge is
             }
         } else {
             require(
-                totalTokensToRelease[msg.sender] <=
+                tokenToReleaseIterations[msg.sender] <=
                     vestingDetails.totalReleaseIterations,
                 "All tokens claimed"
             );
