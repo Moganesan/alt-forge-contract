@@ -63,9 +63,11 @@ contract AltForge is
         uint256 _tgeTimeStamp,
         uint256 _tgeReleasePercentage,
         uint256 _cliffTime,
-        VestingScheduleDetails memory _linearVestingDetails,
+        uint256 _linearVestingStartsAt,
+        uint256 _linearVestingEndsAt,
         uint256 _rewardReleasePeriod,
-        VestingScheduleDetails memory _vestingPeriod,
+        uint256 _vestingPeriodStartsAt,
+        uint256 _vestingPeriodEndsAt,
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) public initializer {
@@ -88,22 +90,19 @@ contract AltForge is
         vestingDetails.withdrawPeriod =
             (_withdrawPeriod * DAY_IN_SECONDS) +
             _tgeTimeStamp;
-        if (
-            _linearVestingDetails.startsAt != 0 &&
-            _linearVestingDetails.endsAt != 0
-        ) {
+        if (_linearVestingStartsAt != 0 && _linearVestingEndsAt != 0) {
             require(
-                _linearVestingDetails.startsAt > _tgeTimeStamp,
+                _linearVestingStartsAt > _tgeTimeStamp,
                 "Invalid vesting schedule"
             );
             require(
-                _linearVestingDetails.endsAt > _linearVestingDetails.startsAt,
+                _linearVestingEndsAt > _linearVestingEndsAt,
                 "Invalid vesting schedule"
             );
-            vestingDetails.linearVestingDetails.startsAt = _linearVestingDetails
-                .startsAt;
-            vestingDetails.linearVestingDetails.endsAt = _linearVestingDetails
-                .endsAt;
+            vestingDetails.linearVestingDetails = VestingScheduleDetails(
+                _linearVestingStartsAt,
+                _linearVestingEndsAt
+            );
             if (_cliffTime > 0) {
                 vestingDetails.cliffTime =
                     (_cliffTime * DAY_IN_SECONDS) +
@@ -112,8 +111,8 @@ contract AltForge is
             vestingDetails.isLinearVesting = true;
         } else {
             if (
-                _vestingPeriod.startsAt == 0 ||
-                _vestingPeriod.endsAt == 0 ||
+                _vestingPeriodStartsAt == 0 ||
+                _vestingPeriodEndsAt == 0 ||
                 _rewardReleasePeriod == 0
             ) {
                 revert("Invalid vesting period");
@@ -123,8 +122,10 @@ contract AltForge is
                     (_cliffTime * DAY_IN_SECONDS) +
                     _tgeTimeStamp;
             }
-            vestingDetails.vestingPeriod.startsAt = _vestingPeriod.startsAt;
-            vestingDetails.vestingPeriod.endsAt = _vestingPeriod.endsAt;
+            vestingDetails.vestingPeriod = VestingScheduleDetails(
+                _vestingPeriodStartsAt,
+                _vestingPeriodEndsAt
+            );
             vestingDetails.rewardReleasePeriod = (_rewardReleasePeriod *
                 DAY_IN_SECONDS);
             vestingDetails.totalReleaseIterations =
