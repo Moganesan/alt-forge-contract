@@ -1,98 +1,123 @@
 import AltForgeModule from "../ignition/AltForgeModule";
 import InvestTokenModule from "../ignition/InvestTokenModule";
 import RewardTokenModule from "../ignition/rewardTokenModule";
-import { ignition } from "hardhat";
+import { ignition, viem, userConfig, ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { parseEther, zeroAddress } from "viem";
 import { expect } from "chai";
+import { formatEther } from "ethers/lib/utils";
 
-describe("Alt Forge", async function () {
-  // setting startsAt current timestamp
-  const startsAt = Math.round(new Date().getTime() / 1000);
+// setting startsAt current timestamp
+const startsAt = Math.round(new Date().getTime() / 1000);
 
-  const currentTime = new Date();
+const currentTime = new Date();
 
-  // setting endsAt for after one month
-  // setting endsAt date for adding 31days with current date
-  currentTime.setUTCDate(new Date().getDate() + 31);
+// setting endsAt for after one month
+// setting endsAt date for adding 31days with current date
+currentTime.setUTCDate(new Date().getDate() + 31);
 
-  // setting endsAt
-  const endsAt = Math.round(currentTime.getTime() / 1000);
+// setting endsAt
+const endsAt = Math.round(currentTime.getTime() / 1000);
 
-  // target raise
-  const targetRaise = parseEther("1000");
+// target raise
+const targetRaise = parseEther("1000");
 
-  // setting tokenGeneration timestamp
-  const tgeTimeStampInstance = new Date();
+// setting tokenGeneration timestamp
+const tgeTimeStampInstance = new Date();
 
-  // setting tokenGeneration timestamp aft4er five deys after campaign starts
-  tgeTimeStampInstance.setDate(new Date().getDate() + 5);
+// setting tokenGeneration timestamp aft4er five deys after campaign starts
+tgeTimeStampInstance.setDate(new Date().getDate() + 5);
 
-  const tgeTimestamp = Math.round(tgeTimeStampInstance.getTime() / 1000);
+const tgeTimestamp = Math.round(tgeTimeStampInstance.getTime() / 1000);
 
-  // tge token release percentage
-  const tgeReleasePercentage = 10;
+// tge token release percentage
+const tgeReleasePercentage = 10;
 
-  // cliff time in days
-  const cliffTime = 30;
+// cliff time in days
+const cliffTime = 30;
 
-  // linear vesting period startsAt
-  const linearVestingStartsAt =
-    new Date(tgeTimestamp * 1000).getTime() / 1000 + 1;
+// linear vesting period startsAt
+const linearVestingStartsAt =
+  new Date(tgeTimestamp * 1000).getTime() / 1000 + 1;
 
-  // linear vesting period endsAt
-  let linearVestingEndsAt: any = new Date(linearVestingStartsAt * 1000);
-  linearVestingEndsAt.setDate(
-    new Date(linearVestingStartsAt * 1000).getDate() + 365
-  );
-  linearVestingEndsAt = linearVestingEndsAt.getTime() / 1000;
+// linear vesting period endsAt
+let linearVestingEndsAt: any = new Date(linearVestingStartsAt * 1000);
+linearVestingEndsAt.setDate(
+  new Date(linearVestingStartsAt * 1000).getDate() + 365
+);
+linearVestingEndsAt = linearVestingEndsAt.getTime() / 1000;
 
-  // reward release period in months
-  // note: if linear vesting period is set reward release period not needed
-  const rewardReleasePeriod = 0;
+// reward release period in months
+// note: if linear vesting period is set reward release period not needed
+const rewardReleasePeriod = 0;
 
-  // total vesting period in start and end time
-  // note: if linear vesting period is set total vesting period not needed
-  const vestingPeriodStartsAt = new Date(tgeTimestamp * 1000).getTime() / 1000;
-  let vestingPeriodEndsAt: any = new Date(vestingPeriodStartsAt * 1000);
-  vestingPeriodEndsAt.setDate(vestingPeriodEndsAt.getDate() + 365);
-  vestingPeriodEndsAt = vestingPeriodEndsAt.getTime();
+// total vesting period in start and end time
+// note: if linear vesting period is set total vesting period not needed
+const vestingPeriodStartsAt = new Date(tgeTimestamp * 1000).getTime() / 1000;
+let vestingPeriodEndsAt: any = new Date(vestingPeriodStartsAt * 1000);
+vestingPeriodEndsAt.setDate(vestingPeriodEndsAt.getDate() + 365);
+vestingPeriodEndsAt = vestingPeriodEndsAt.getTime();
 
-  // withdraw period in days
-  const withdrawPeriod = 3;
+// withdraw period in days
+const withdrawPeriod = 3;
 
-  // price per token
-  const pricePerToken = parseEther("0.1");
+// price per token
+const pricePerToken = parseEther("0.1");
 
-  const deployAltForgeFixer = async () => {
-    const { altForge } = await ignition.deploy(AltForgeModule);
-    return altForge;
-  };
+const deployAltForgeFixer = async () => {
+  const { altForge } = await ignition.deploy(AltForgeModule);
+  return altForge;
+};
 
-  const deployRewardTokenFixer = async () => {
-    const { rewardToken } = await ignition.deploy(RewardTokenModule, {
-      parameters: {
-        RewardToken: {
-          initialSupply: parseEther("1000000"),
-        },
+const deployAltForgeFixerAcc2 = async () => {
+  const [owner, account2] = await ethers.getSigners();
+  const { altForge } = await ignition.deploy(AltForgeModule, {
+    defaultSender: account2.address,
+  });
+  return altForge;
+};
+
+const deployRewardTokenFixer = async () => {
+  const { rewardToken } = await ignition.deploy(RewardTokenModule, {
+    parameters: {
+      RewardToken: {
+        initialSupply: parseEther("1000000"),
       },
-    });
+    },
+  });
 
-    return rewardToken;
-  };
+  return rewardToken;
+};
 
-  const deployInvestTokenFixer = async () => {
-    const { investToken } = await ignition.deploy(InvestTokenModule, {
-      parameters: {
-        InvestToken: {
-          initialSupply: parseEther("1000000"),
-        },
+const deployRewardTokenFixerAcc2 = async () => {
+  const [owner, account2] = await ethers.getSigners();
+  const { altForge } = await ignition.deploy(AltForgeModule, {
+    defaultSender: account2.address,
+  });
+  return altForge;
+};
+
+const deployInvestTokenFixer = async () => {
+  const { investToken } = await ignition.deploy(InvestTokenModule, {
+    parameters: {
+      InvestToken: {
+        initialSupply: parseEther("1000000"),
       },
-    });
+    },
+  });
 
-    return investToken;
-  };
+  return investToken;
+};
 
+const deployInvesTokenFixerAcc2 = async () => {
+  const [owner, account2] = await ethers.getSigners();
+  const { rewardToken } = await ignition.deploy(RewardTokenModule, {
+    defaultSender: account2.address,
+  });
+  return rewardToken;
+};
+
+describe("Initialize", async function () {
   it("Should throw an error when passing empty project token address.", async function () {
     try {
       const altForge = await loadFixture(deployAltForgeFixer);
@@ -564,4 +589,93 @@ describe("Alt Forge", async function () {
       console.log(err);
     }
   };
+});
+
+describe("Invest", async function () {
+  it("Should be able to invest only having enough balance to invest.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const [owner] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+    const investAmount = parseEther("1000");
+
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
+        BigInt(rewardReleasePeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+
+      await altForge.write.invest([investAmount]);
+
+      const investedAmount = await altForge.read.investors([signerAddress]);
+
+      expect(investedAmount).to.equal(investAmount);
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  it("Should throw an error when trying to invest with 0 token balance.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixerAcc2);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const [owner] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+    const investAmount = parseEther("1000");
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
+        BigInt(rewardReleasePeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+      await altForge.write.invest([investAmount]);
+    } catch (err) {
+      console.log(err);
+    }
+  });
 });
