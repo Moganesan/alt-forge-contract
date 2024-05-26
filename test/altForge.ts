@@ -91,10 +91,15 @@ const deployRewardTokenFixer = async () => {
 
 const deployRewardTokenFixerAcc2 = async () => {
   const [owner, account2] = await ethers.getSigners();
-  const { altForge } = await ignition.deploy(AltForgeModule, {
+  const { rewardToken } = await ignition.deploy(RewardTokenModule, {
     defaultSender: account2.address,
+    parameters: {
+      RewardToken: {
+        initialSupply: parseEther("1000000"),
+      },
+    },
   });
-  return altForge;
+  return rewardToken;
 };
 
 const deployInvestTokenFixer = async () => {
@@ -109,12 +114,17 @@ const deployInvestTokenFixer = async () => {
   return investToken;
 };
 
-const deployInvesTokenFixerAcc2 = async () => {
+const deployInvestTokenFixerAcc2 = async () => {
   const [owner, account2] = await ethers.getSigners();
-  const { rewardToken } = await ignition.deploy(RewardTokenModule, {
+  const { investToken } = await ignition.deploy(InvestTokenModule, {
     defaultSender: account2.address,
+    parameters: {
+      InvestToken: {
+        initialSupply: parseEther("1000000"),
+      },
+    },
   });
-  return rewardToken;
+  return investToken;
 };
 
 describe("Initialize", async function () {
@@ -639,9 +649,9 @@ describe("Invest", async function () {
     }
   });
   it("Should throw an error when trying to invest with 0 token balance.", async function () {
-    const altForge = await loadFixture(deployAltForgeFixerAcc2);
-    const rewardToken = await loadFixture(deployRewardTokenFixer);
-    const investToken = await loadFixture(deployInvestTokenFixer);
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixerAcc2);
+    const investToken = await loadFixture(deployInvestTokenFixerAcc2);
     const [owner] = await ethers.getSigners();
     const signerAddress = (await owner.getAddress()) as `0x${string}`;
     const investAmount = parseEther("1000");
