@@ -149,8 +149,10 @@ contract AltForge is
         );
         require(investors[msg.sender] == 0, "Already Invested");
         require(endsAt >= block.timestamp, "Investment ends");
-        bool approve = investToken.approve(address(this), _amount);
-        require(approve, "Approve Failed");
+        require(
+            investToken.allowance(msg.sender, address(this)) != 0,
+            "Insufficient Allowance"
+        );
         bool transfer = investToken.transferFrom(
             msg.sender,
             address(this),
