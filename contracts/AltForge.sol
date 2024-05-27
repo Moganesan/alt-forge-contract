@@ -71,7 +71,6 @@ contract AltForge is
         uint256 _withdrawPeriod,
         uint256 _pricePerToken
     ) public initializer {
-        require(_startsAt <= block.timestamp, "Invalid start time");
         require(_startsAt < _endsAt, "Invalid campaign time");
         require(_targetRaise > 0, "Invalid target raise");
         require(_investToken != address(0), "404: Invest token");
