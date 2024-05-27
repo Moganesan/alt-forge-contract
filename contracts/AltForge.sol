@@ -175,7 +175,6 @@ contract AltForge is
      */
     function withdraw() public {
         require(investors[msg.sender] > 0, "Not Invested");
-        require(block.timestamp > vestingDetails.tgeTimeStamp);
         uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
 
         require(
