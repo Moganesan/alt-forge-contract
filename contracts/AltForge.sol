@@ -4,7 +4,6 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import "hardhat/console.sol";
 
@@ -175,13 +174,15 @@ contract AltForge is
      */
     function withdraw() public {
         require(investors[msg.sender] > 0, "Not Invested");
-        uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
-
         require(
-            currentTimeDiff <= vestingDetails.withdrawPeriod,
+            block.timestamp <= vestingDetails.withdrawPeriod,
             "Withdraw Period Ends."
         );
-        token.transferFrom(address(this), msg.sender, investors[msg.sender]);
+        console.log("Token Balance", token.balanceOf(address(this)));
+        console.log("Invested Amount", investors[msg.sender]);
+
+        bool transfer = token.transfer(msg.sender, investors[msg.sender]);
+        require(transfer, "Transfer Failed");
         totalRaise -= investors[msg.sender];
         investors[msg.sender] = 0;
         tokensToRelease[msg.sender] = 0;
