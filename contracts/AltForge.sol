@@ -145,6 +145,7 @@ contract AltForge is
             investToken.balanceOf(msg.sender) >= _amount,
             "Insufficient Balance"
         );
+
         require(investors[msg.sender] == 0, "Already Invested");
         require(endsAt >= block.timestamp, "Investment ends");
         require(
@@ -165,7 +166,6 @@ contract AltForge is
         }
         tokensToRelease[msg.sender] = _amount / pricePerToken;
         totalRaise += _amount;
-
         emit _invest(msg.sender, _amount, block.timestamp);
     }
 
@@ -178,10 +178,8 @@ contract AltForge is
             block.timestamp <= vestingDetails.withdrawPeriod,
             "Withdraw Period Ends."
         );
-        console.log("Token Balance", token.balanceOf(address(this)));
-        console.log("Invested Amount", investors[msg.sender]);
 
-        bool transfer = token.transfer(msg.sender, investors[msg.sender]);
+        bool transfer = investToken.transfer(msg.sender, investors[msg.sender]);
         require(transfer, "Transfer Failed");
         totalRaise -= investors[msg.sender];
         investors[msg.sender] = 0;
