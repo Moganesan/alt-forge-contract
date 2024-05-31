@@ -21,4 +21,30 @@ async function setNextBlockTimestamp(timestamp: number) {
   await ethers.provider.send("evm_mine", []);
 }
 
-export { extractRevertMessage, increaseBlockTimeStamp, setNextBlockTimestamp };
+async function resetBlockTimestamp() {
+  const date = new Date().getTime();
+  await ethers.provider.send("evm_setNextBlockTimestamp", [date]);
+  await ethers.provider.send("evm_mine", []);
+}
+
+function daysInCurrentMonth() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // getMonth() returns month index starting from 0 for January
+
+  // Create a new date for the first day of the next month
+  const nextMonth: any = new Date(currentYear, currentMonth + 1, 1);
+
+  // Set the day to 0, which gives the last day of the current month
+  const lastDayOfCurrentMonth = new Date(nextMonth - 1).getDate();
+
+  return lastDayOfCurrentMonth;
+}
+
+export {
+  extractRevertMessage,
+  increaseBlockTimeStamp,
+  setNextBlockTimestamp,
+  daysInCurrentMonth,
+  resetBlockTimestamp,
+};
