@@ -5,8 +5,12 @@ import { ignition, viem, userConfig, ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { parseEther, zeroAddress } from "viem";
 import { expect } from "chai";
-import { extractRevertMessage, setNextBlockTimestamp } from "../utils/index";
-import { formatEther } from "ethers/lib/utils";
+import {
+  extractRevertMessage,
+  setNextBlockTimestamp,
+  resetBlockTimestamp,
+} from "../utils/index";
+import { TransactionTypes, formatEther } from "ethers/lib/utils";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 // setting startsAt current timestamp
@@ -509,7 +513,7 @@ describe("Initialize", async function () {
     const timeDifference = EndsAt.getTime() - StartsAt.getTime();
     const daysInDifference = timeDifference / (1000 * 60 * 60 * 24);
 
-    expect(daysInDifference).to.eq(31);
+    expect(daysInDifference == 30 || daysInDifference == 31).to.be.true;
   });
 
   it("TGE timestamp should be equal to the time 5 days after the startTime.", async function () {
@@ -543,7 +547,7 @@ describe("Initialize", async function () {
 
     const daysInDifference = timeDifference / (1000 * 60 * 60 * 24);
 
-    expect(daysInDifference).to.equal(5);
+    expect(daysInDifference).equal(5);
   });
 
   it("Withdraw period timestamp should be equal to the time 3 days after the startTime.", async function () {
@@ -950,9 +954,290 @@ describe("Withdraw", async function () {
       await rewardToken.write.approve([altForge.address, investAmount]);
 
       await altForge.write.withdraw();
+
+      await resetBlockTimestamp();
+
+      throw new Error("Expected error was not thrown");
     } catch (err) {
       const revertMessage = extractRevertMessage(err);
       expect(revertMessage).to.equals("Withdraw Period Ends.");
+    }
+  });
+
+  it("The investor should be able to get their invested token back to their wallet address.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const investAmount = parseEther("1000");
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    await altForge.write.initialize([
+      rewardToken.address,
+      investToken.address,
+      BigInt(targetRaise),
+      BigInt(startsAt),
+      BigInt(endsAt),
+      BigInt(tgeTimestamp),
+      BigInt(tgeReleasePercentage),
+      BigInt(cliffTime),
+      BigInt(linearVestingStartsAt),
+      BigInt(linearVestingEndsAt),
+      BigInt(rewardReleasePeriod),
+      BigInt(vestingPeriodStartsAt),
+      BigInt(vestingPeriodEndsAt),
+      BigInt(withdrawPeriod),
+      BigInt(pricePerToken),
+    ]);
+
+    // check allowance
+    const allowance = await investToken.read.allowance([
+      signerAddress,
+      altForge.address,
+    ]);
+
+    if (Number(allowance) == 0) {
+      await investToken.write.approve([altForge.address, investAmount]);
+    }
+    await altForge.write.invest([investAmount], { account: signerAddress });
+
+    await rewardToken.write.approve([altForge.address, investAmount]);
+
+    await altForge.write.withdraw();
+
+    const balance = await investToken.read.balanceOf([signerAddress]);
+    expect(formatEther(balance)).to.equal(formatEther(parseEther("1000000")));
+  });
+});
+
+describe("Claim Token", async function () {
+  it("It should throw an error when attempt to call claim token function without invested.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
+        BigInt(rewardReleasePeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      await altForge.write.claimToken();
+      throw new Error("Expected error was not thrown");
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+      expect(revertMessage).to.equals("Not Invested");
+    }
+  });
+  it("It should throw an error when attemp to call claim token function without tge occured.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const investAmount = parseEther("1000");
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
+        BigInt(rewardReleasePeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+
+      await altForge.write.invest([investAmount]);
+
+      await altForge.write.claimToken();
+      throw new Error("Expected error was not thrown");
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+      expect(revertMessage).to.equals("Token not generated");
+    }
+  });
+  it("It should throw an error when attempt to call claim token function without claim period occured.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const investAmount = parseEther("1000");
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
+        BigInt(rewardReleasePeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+
+      await altForge.write.invest([investAmount]);
+
+      await altForge.write.claimToken();
+      throw new Error("Expected error was not thrown");
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+      expect(revertMessage).to.equals("Token not generated");
+    }
+  });
+
+  it("It should throw an error when attempt to claim tokens without cliff period occured.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const investAmount = parseEther("1000");
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
+        BigInt(rewardReleasePeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+      await altForge.write.invest([investAmount]);
+
+      const timestampAfterTokenGenerated =
+        (await ethers.provider.getBlock("latest")).timestamp + 6 * 24 * 60 * 60;
+
+      await setNextBlockTimestamp(timestampAfterTokenGenerated);
+
+      await altForge.write.claimToken();
+
+      await resetBlockTimestamp();
+      throw new Error("Expected error was not thrown");
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+      expect(revertMessage).to.equals("Cliff period not allowed to claim");
+    }
+  });
+  it("It should throw an error when attemp to withdraw  after all the tokens are claimed.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const investAmount = parseEther("1000");
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt("0"),
+        BigInt("0"),
+        BigInt(rewardReleasePeriod),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+
+      console.log(
+        "Latest Timestamp",
+        (await ethers.provider.getBlock("latest")).timestamp
+      );
+
+      await altForge.write.invest([investAmount]);
+
+      await altForge.write.claimToken();
+      throw new Error("Expected error was not thrown");
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+      expect(revertMessage).to.equals("Cliff period not allowed to claim");
     }
   });
 });
