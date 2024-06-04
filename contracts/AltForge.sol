@@ -113,6 +113,12 @@ contract AltForge is
                 _vestingPeriodEndsAt == 0 ||
                 _rewardReleasePeriod == 0
             ) {
+                console.log(
+                    _vestingPeriodStartsAt,
+                    _vestingPeriodEndsAt,
+                    _rewardReleasePeriod
+                );
+                console.log("Invalid vesting per triggered");
                 revert("Invalid vesting period");
             }
 
@@ -192,6 +198,8 @@ contract AltForge is
      * @dev function for claiming reward
      */
     function claimToken() public {
+        console.log("TGE Timestamp", vestingDetails.tgeTimeStamp);
+        console.log("Current Block", block.timestamp);
         require(investors[msg.sender] > 0, "Not Invested");
         require(tokensToRelease[msg.sender] > 0, "Their is no tokens to claim");
         require(
@@ -200,7 +208,7 @@ contract AltForge is
         );
         require(
             vestingDetails.cliffTime < block.timestamp,
-            "Cliff period you can't claim."
+            "Cliff period not allowed to claim"
         );
         uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
 

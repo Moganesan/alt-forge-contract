@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-ignition-viem";
+import "@nomiclabs/hardhat-waffle";
 
 const config: HardhatUserConfig = {
   networks: {
