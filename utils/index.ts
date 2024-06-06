@@ -41,10 +41,15 @@ function daysInCurrentMonth() {
   return lastDayOfCurrentMonth;
 }
 
+function daysToSeconds(days: number) {
+  return days * 24 * 60 * 60;
+}
+
 export {
   extractRevertMessage,
   increaseBlockTimeStamp,
   setNextBlockTimestamp,
   daysInCurrentMonth,
   resetBlockTimestamp,
+  daysToSeconds,
 };
