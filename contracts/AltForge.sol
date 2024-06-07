@@ -4,7 +4,7 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
 contract AltForge is
@@ -113,12 +113,6 @@ contract AltForge is
                 _vestingPeriodEndsAt == 0 ||
                 _rewardReleasePeriod == 0
             ) {
-                console.log(
-                    _vestingPeriodStartsAt,
-                    _vestingPeriodEndsAt,
-                    _rewardReleasePeriod
-                );
-                console.log("Invalid vesting per triggered");
                 revert("Invalid vesting period");
             }
 
@@ -134,8 +128,8 @@ contract AltForge is
             vestingDetails.rewardReleasePeriod = (_rewardReleasePeriod *
                 DAY_IN_SECONDS);
             vestingDetails.totalReleaseIterations =
-                vestingDetails.vestingPeriod.endsAt -
-                vestingDetails.vestingPeriod.startsAt /
+                (vestingDetails.vestingPeriod.endsAt -
+                    vestingDetails.vestingPeriod.startsAt) /
                 vestingDetails.rewardReleasePeriod;
         }
         pricePerToken = _pricePerToken;
@@ -171,6 +165,7 @@ contract AltForge is
                 .totalReleaseIterations;
         }
         tokensToRelease[msg.sender] = _amount / pricePerToken;
+        totalTokensToRelease[msg.sender] = tokensToRelease[msg.sender];
         totalRaise += _amount;
         emit _invest(msg.sender, _amount, block.timestamp);
     }
@@ -198,8 +193,6 @@ contract AltForge is
      * @dev function for claiming reward
      */
     function claimToken() public {
-        console.log("TGE Timestamp", vestingDetails.tgeTimeStamp);
-        console.log("Current Block", block.timestamp);
         require(investors[msg.sender] > 0, "Not Invested");
         require(tokensToRelease[msg.sender] > 0, "Their is no tokens to claim");
         require(
@@ -210,7 +203,6 @@ contract AltForge is
             vestingDetails.cliffTime < block.timestamp,
             "Cliff period not allowed to claim"
         );
-        uint256 currentTimeDiff = block.timestamp - vestingDetails.tgeTimeStamp;
 
         if (vestingDetails.isLinearVesting) {
             require(
@@ -244,26 +236,35 @@ contract AltForge is
             }
         } else {
             require(
-                tokenToReleaseIterations[msg.sender] <=
-                    vestingDetails.totalReleaseIterations,
+                tokenToReleaseIterations[msg.sender] != 0,
                 "All tokens claimed"
             );
             uint256 currentIteration = vestingDetails.totalReleaseIterations -
                 tokenToReleaseIterations[msg.sender] +
                 1;
-
             uint256 requiredTime = currentIteration *
-                vestingDetails.rewardReleasePeriod;
+                vestingDetails.rewardReleasePeriod +
+                startsAt;
             require(
-                currentTimeDiff >= requiredTime,
+                block.timestamp >= requiredTime,
                 "Release period not yet reached"
             );
-            uint256 TokensToRelease = tokensToRelease[msg.sender] /
-                vestingDetails.vestingPeriod.startsAt +
-                vestingDetails.vestingPeriod.endsAt;
-            tokensToRelease[msg.sender] -= TokensToRelease;
+            uint256 TokensToRelease;
+            if (tokenToReleaseIterations[msg.sender] == 1) {
+                TokensToRelease = tokensToRelease[msg.sender];
+            } else {
+                TokensToRelease =
+                    totalTokensToRelease[msg.sender] /
+                    vestingDetails.totalReleaseIterations;
+            }
+            tokensToRelease[msg.sender] =
+                tokensToRelease[msg.sender] -
+                TokensToRelease;
             token.transfer(msg.sender, TokensToRelease);
             tokenToReleaseIterations[msg.sender] -= 1;
+            if (tokenToReleaseIterations[msg.sender] == 0) {
+                totalTokensToRelease[msg.sender] = 0;
+            }
 
             emit _claimToken(msg.sender, TokensToRelease);
         }
