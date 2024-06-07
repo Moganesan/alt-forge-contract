@@ -9,6 +9,7 @@ import {
   extractRevertMessage,
   setNextBlockTimestamp,
   resetBlockTimestamp,
+  daysToSeconds,
 } from "../utils/index";
 import { TransactionTypes, formatEther } from "ethers/lib/utils";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
@@ -56,14 +57,14 @@ linearVestingEndsAt = linearVestingEndsAt.getTime() / 1000;
 
 // reward release period in months
 // note: if linear vesting period is set reward release period not needed
-const rewardReleasePeriod = 0;
+const rewardReleasePeriod = 30;
 
 // total vesting period in start and end time
 // note: if linear vesting period is set total vesting period not needed
 const vestingPeriodStartsAt = new Date(tgeTimestamp * 1000).getTime() / 1000;
 let vestingPeriodEndsAt: any = new Date(vestingPeriodStartsAt * 1000);
 vestingPeriodEndsAt.setDate(vestingPeriodEndsAt.getDate() + 365);
-vestingPeriodEndsAt = vestingPeriodEndsAt.getTime();
+vestingPeriodEndsAt = vestingPeriodEndsAt.getTime() / 1000;
 
 // withdraw period in days
 const withdrawPeriod = 3;
@@ -1216,6 +1217,9 @@ describe("Claim Token", async function () {
         BigInt(pricePerToken),
       ]);
 
+      // transfering some reward tokens to contract
+      rewardToken.write.transfer([altForge.address, parseEther("100000")]);
+
       // check allowance
       const allowance = await investToken.read.allowance([
         signerAddress,
@@ -1226,18 +1230,28 @@ describe("Claim Token", async function () {
         await investToken.write.approve([altForge.address, investAmount]);
       }
 
-      console.log(
-        "Latest Timestamp",
-        (await ethers.provider.getBlock("latest")).timestamp
-      );
-
       await altForge.write.invest([investAmount]);
 
-      await altForge.write.claimToken();
-      throw new Error("Expected error was not thrown");
+      const totalReleaseIterations = await altForge.read.vestingDetails();
+
+      const timeAfterCliffTime = daysToSeconds(cliffTime + 5) + startsAt;
+
+      await setNextBlockTimestamp(timeAfterCliffTime);
+      for (let i = 1; i <= Number(totalReleaseIterations[7]) + 1; i++) {
+        const vestingDetails = await altForge.read.vestingDetails();
+        const rewardReleasePeriod = Number(vestingDetails[0]);
+
+        await setNextBlockTimestamp(
+          Number(rewardReleasePeriod) * i +
+            (
+              await ethers.provider.getBlock("latest")
+            ).timestamp
+        );
+        await altForge.write.claimToken();
+      }
     } catch (err) {
       const revertMessage = extractRevertMessage(err);
-      expect(revertMessage).to.equals("Cliff period not allowed to claim");
+      expect(revertMessage).to.equals("Their is no tokens to claim");
     }
   });
 });
