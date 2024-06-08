@@ -12,7 +12,7 @@ import {
   daysToSeconds,
 } from "../utils/index";
 import { TransactionTypes, formatEther } from "ethers/lib/utils";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { reset, time } from "@nomicfoundation/hardhat-network-helpers";
 
 // setting startsAt current timestamp
 const startsAt = Math.round(new Date().getTime() / 1000);
@@ -1249,9 +1249,70 @@ describe("Claim Token", async function () {
         );
         await altForge.write.claimToken();
       }
+      await resetBlockTimestamp();
     } catch (err) {
       const revertMessage = extractRevertMessage(err);
       expect(revertMessage).to.equals("Their is no tokens to claim");
+    }
+  });
+
+  it("It should throw an error when trying to claim without the release period is not reached.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const investAmount = parseEther("1000");
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    try {
+      await setNextBlockTimestamp(daysToSeconds(1) + startsAt);
+      console.log(
+        "Current Time Stamp",
+        (await ethers.provider.getBlock("latest")).timestamp
+      );
+
+      console.log("Ends At", endsAt);
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt("0"),
+        BigInt("0"),
+        BigInt(rewardReleasePeriod + 10),
+        BigInt(vestingPeriodStartsAt),
+        BigInt(vestingPeriodEndsAt),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // transfering some reward tokens to contract
+      rewardToken.write.transfer([altForge.address, parseEther("100000")]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+
+      await altForge.write.invest([investAmount]);
+
+      const timeAfterCliffTime = daysToSeconds(cliffTime + 5) + startsAt;
+
+      await setNextBlockTimestamp(timeAfterCliffTime);
+
+      await altForge.write.claimToken();
+    } catch (err) {
+      const revertMessage = extractRevertMessage(err);
+      expect(revertMessage).to.equals("Release period not yet reached");
     }
   });
 });
