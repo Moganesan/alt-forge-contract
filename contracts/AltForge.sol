@@ -89,6 +89,9 @@ contract AltForge is
             (_withdrawPeriod * DAY_IN_SECONDS) +
             _startsAt;
         if (_linearVestingStartsAt != 0 && _linearVestingEndsAt != 0) {
+            if (_vestingPeriodStartsAt != 0 && _vestingPeriodEndsAt != 0) {
+                revert("Dual vesting choice choose either linear or monthy.");
+            }
             require(
                 _linearVestingStartsAt > _tgeTimeStamp,
                 "Invalid vesting period"
@@ -205,22 +208,25 @@ contract AltForge is
         );
 
         if (vestingDetails.isLinearVesting) {
+            console.log("Calling Linear Vesting");
             require(
                 block.timestamp > vestingDetails.linearVestingDetails.startsAt,
                 "Vesting not started"
             );
             require(
-                block.timestamp < vestingDetails.linearVestingDetails.endsAt,
+                block.timestamp <= vestingDetails.linearVestingDetails.endsAt,
                 "Vesting end"
             );
             if (isTGEReleased[msg.sender] == false) {
                 uint256 tgeTokens = (tokensToRelease[msg.sender] *
                     vestingDetails.tgeReleasePercentage) / 100;
+                console.log("Tokens To Release", tokensToRelease[msg.sender]);
                 uint256 vestedTokens = calculateVestedAmount(
                     block.timestamp,
                     msg.sender
                 );
-                tokensToRelease[msg.sender] -= vestedTokens;
+                console.log("TGE Tokens", tgeTokens + vestedTokens);
+                tokensToRelease[msg.sender] -= vestedTokens + tgeTokens;
                 isTGEReleased[msg.sender] = true;
                 token.transfer(msg.sender, tgeTokens + vestedTokens);
                 emit _claimToken(msg.sender, tgeTokens + vestedTokens);
