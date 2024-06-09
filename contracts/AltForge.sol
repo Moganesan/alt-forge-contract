@@ -359,6 +359,13 @@ contract AltForge is
     }
 
     /**
+    @dev function for getting campaign end time
+     */
+    function getCampaignEndTime() public view returns (uint256) {
+        return endsAt;
+    }
+
+    /**
     @dev function for checking isLeap year
      */
     function isLeapYear(uint16 year) internal pure returns (bool) {
