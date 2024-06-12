@@ -160,8 +160,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -189,8 +189,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -223,8 +223,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -253,8 +253,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -284,8 +284,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -315,8 +315,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -350,8 +350,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(BigInt("0")),
         BigInt(pricePerToken),
       ]);
@@ -381,8 +381,8 @@ describe("Initialize", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt(""),
+        BigInt(""),
         BigInt(withdrawPeriod),
         BigInt("0"),
       ]);
@@ -534,8 +534,8 @@ describe("Initialize", async function () {
       BigInt(linearVestingStartsAt),
       BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(vestingPeriodStartsAt),
-      BigInt(vestingPeriodEndsAt),
+      BigInt("0"),
+      BigInt("0"),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -568,8 +568,8 @@ describe("Initialize", async function () {
       BigInt(linearVestingStartsAt),
       BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(vestingPeriodStartsAt),
-      BigInt(vestingPeriodEndsAt),
+      BigInt(""),
+      BigInt(""),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -600,8 +600,8 @@ describe("Initialize", async function () {
       BigInt(linearVestingStartsAt),
       BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(vestingPeriodStartsAt),
-      BigInt(vestingPeriodEndsAt),
+      BigInt(""),
+      BigInt(""),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -639,8 +639,8 @@ describe("Invest", async function () {
       BigInt(linearVestingStartsAt),
       BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(vestingPeriodStartsAt),
-      BigInt(vestingPeriodEndsAt),
+      BigInt("0"),
+      BigInt("0"),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -682,8 +682,8 @@ describe("Invest", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -727,8 +727,8 @@ describe("Invest", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -788,8 +788,8 @@ describe("Invest", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -844,8 +844,8 @@ describe("Withdraw", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -926,8 +926,8 @@ describe("Withdraw", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -985,8 +985,8 @@ describe("Withdraw", async function () {
       BigInt(linearVestingStartsAt),
       BigInt(linearVestingEndsAt),
       BigInt(rewardReleasePeriod),
-      BigInt(vestingPeriodStartsAt),
-      BigInt(vestingPeriodEndsAt),
+      BigInt("0"),
+      BigInt("0"),
       BigInt(withdrawPeriod),
       BigInt(pricePerToken),
     ]);
@@ -1011,7 +1011,7 @@ describe("Withdraw", async function () {
   });
 });
 
-describe("Claim Token", async function () {
+describe("Claim Token Monthly Vesting", async function () {
   it("It should throw an error when attempt to call claim token function without invested.", async function () {
     const altForge = await loadFixture(deployAltForgeFixer);
     const rewardToken = await loadFixture(deployRewardTokenFixer);
@@ -1032,8 +1032,8 @@ describe("Claim Token", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -1045,6 +1045,7 @@ describe("Claim Token", async function () {
       expect(revertMessage).to.equals("Not Invested");
     }
   });
+
   it("It should throw an error when attemp to call claim token function without tge occured.", async function () {
     const altForge = await loadFixture(deployAltForgeFixer);
     const rewardToken = await loadFixture(deployRewardTokenFixer);
@@ -1066,8 +1067,8 @@ describe("Claim Token", async function () {
         BigInt(linearVestingStartsAt),
         BigInt(linearVestingEndsAt),
         BigInt(rewardReleasePeriod),
-        BigInt(vestingPeriodStartsAt),
-        BigInt(vestingPeriodEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(withdrawPeriod),
         BigInt(pricePerToken),
       ]);
@@ -1109,8 +1110,8 @@ describe("Claim Token", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingStartsAt),
-        BigInt(linearVestingEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(rewardReleasePeriod),
         BigInt(vestingPeriodStartsAt),
         BigInt(vestingPeriodEndsAt),
@@ -1156,8 +1157,8 @@ describe("Claim Token", async function () {
         BigInt(tgeTimestamp),
         BigInt(tgeReleasePercentage),
         BigInt(cliffTime),
-        BigInt(linearVestingStartsAt),
-        BigInt(linearVestingEndsAt),
+        BigInt("0"),
+        BigInt("0"),
         BigInt(rewardReleasePeriod),
         BigInt(vestingPeriodStartsAt),
         BigInt(vestingPeriodEndsAt),
@@ -1266,12 +1267,7 @@ describe("Claim Token", async function () {
 
     try {
       await setNextBlockTimestamp(daysToSeconds(1) + startsAt);
-      console.log(
-        "Current Time Stamp",
-        (await ethers.provider.getBlock("latest")).timestamp
-      );
 
-      console.log("Ends At", endsAt);
       await altForge.write.initialize([
         rewardToken.address,
         investToken.address,
@@ -1310,9 +1306,70 @@ describe("Claim Token", async function () {
       await setNextBlockTimestamp(timeAfterCliffTime);
 
       await altForge.write.claimToken();
+
+      await resetBlockTimestamp();
     } catch (err) {
       const revertMessage = extractRevertMessage(err);
       expect(revertMessage).to.equals("Release period not yet reached");
+    }
+  });
+});
+
+describe("Claim Token Linear Vesting", async function () {
+  it("Linear vesting claim should work.", async function () {
+    const altForge = await loadFixture(deployAltForgeFixer);
+    const rewardToken = await loadFixture(deployRewardTokenFixer);
+    const investToken = await loadFixture(deployInvestTokenFixer);
+    const investAmount = parseEther("1000");
+    const [owner, account2] = await ethers.getSigners();
+    const signerAddress = (await owner.getAddress()) as `0x${string}`;
+
+    try {
+      await altForge.write.initialize([
+        rewardToken.address,
+        investToken.address,
+        BigInt(targetRaise),
+        BigInt(startsAt),
+        BigInt(endsAt),
+        BigInt(tgeTimestamp),
+        BigInt(tgeReleasePercentage),
+        BigInt(cliffTime),
+        BigInt(linearVestingStartsAt),
+        BigInt(linearVestingEndsAt),
+        BigInt(rewardReleasePeriod),
+        BigInt("0"),
+        BigInt("0"),
+        BigInt(withdrawPeriod),
+        BigInt(pricePerToken),
+      ]);
+
+      // transfering some reward tokens to contract
+      await rewardToken.write.transfer([
+        altForge.address,
+        parseEther("100000"),
+      ]);
+
+      // check allowance
+      const allowance = await investToken.read.allowance([
+        signerAddress,
+        altForge.address,
+      ]);
+
+      if (Number(allowance) == 0) {
+        await investToken.write.approve([altForge.address, investAmount]);
+      }
+
+      await altForge.write.invest([investAmount]);
+
+      const timeAfterCliffTime = daysToSeconds(cliffTime + 5) + startsAt;
+
+      await setNextBlockTimestamp(timeAfterCliffTime);
+
+      await altForge.write.claimToken();
+    } catch (err) {
+      console.log(err);
+      const revertMessage = extractRevertMessage(err);
+      expect(revertMessage).to.equals("Not Invested");
     }
   });
 });

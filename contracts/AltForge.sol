@@ -188,6 +188,9 @@ contract AltForge is
         totalRaise -= investors[msg.sender];
         investors[msg.sender] = 0;
         tokensToRelease[msg.sender] = 0;
+        totalTokensToRelease[msg.sender] = 0;
+        investedTime[msg.sender] = 0;
+        investors[msg.sender] = 0;
 
         emit _withdraw(msg.sender, block.timestamp);
     }
@@ -208,7 +211,6 @@ contract AltForge is
         );
 
         if (vestingDetails.isLinearVesting) {
-            console.log("Calling Linear Vesting");
             require(
                 block.timestamp > vestingDetails.linearVestingDetails.startsAt,
                 "Vesting not started"
@@ -220,12 +222,10 @@ contract AltForge is
             if (isTGEReleased[msg.sender] == false) {
                 uint256 tgeTokens = (tokensToRelease[msg.sender] *
                     vestingDetails.tgeReleasePercentage) / 100;
-                console.log("Tokens To Release", tokensToRelease[msg.sender]);
                 uint256 vestedTokens = calculateVestedAmount(
                     block.timestamp,
                     msg.sender
                 );
-                console.log("TGE Tokens", tgeTokens + vestedTokens);
                 tokensToRelease[msg.sender] -= vestedTokens + tgeTokens;
                 isTGEReleased[msg.sender] = true;
                 token.transfer(msg.sender, tgeTokens + vestedTokens);
@@ -356,6 +356,13 @@ contract AltForge is
     */
     function getTotalRaisePercentage() public view returns (uint256) {
         return (totalRaise * 100) / targetRaise;
+    }
+
+    /**
+    @dev function for getting campaign start time
+     */
+    function getCampaignStartTime() public view returns (uint256) {
+        return startsAt;
     }
 
     /**
